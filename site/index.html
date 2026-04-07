@@ -5,40 +5,304 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Town in a Box</title>
   <style>
-    :root{--bg:#0a0a0a;--fg:#e0e0e0;--accent:#ff6600}
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--fg);max-width:800px;margin:0 auto;padding:2rem}
-    h1{color:var(--accent);margin-bottom:.5rem}
-    .tagline{opacity:.7;margin-bottom:2rem}
-    .card{background:#151515;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1rem}
-    .card h2{color:var(--accent);font-size:1.1rem;margin-bottom:.5rem}
-    code{background:#1a1a2e;padding:2px 6px;border-radius:3px;font-size:.9em}
-    footer{margin-top:3rem;opacity:.4;font-size:.85rem}
-    a{color:var(--accent)}
+    :root {
+      --bg: #0a0a0a; --fg: #e0e0e0; --accent: #ff6600;
+      --surface: #151515; --border: #333; --dim: #888;
+      --green: #22c55e; --red: #ef4444; --yellow: #eab308;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--fg); }
+    .app { display: grid; grid-template-columns: 300px 1fr; grid-template-rows: auto 1fr auto; min-height: 100vh; }
+    header { grid-column: 1 / -1; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 1rem; }
+    .sidebar { border-right: 1px solid var(--border); padding: 1rem; overflow-y: auto; }
+    .main { padding: 1.5rem; overflow-y: auto; }
+    h1 { font-size: 1.3rem; color: var(--accent); }
+    .badge { font-size: .75rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+    .badge-live { background: var(--green); color: #000; }
+    .badge-processing { background: var(--yellow); color: #000; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 50% { opacity: .6; } }
+    .header-right { margin-left: auto; display: flex; gap: .75rem; align-items: center; }
+    .dropzone { border: 2px dashed var(--border); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all .2s; margin-bottom: 1rem; }
+    .dropzone:hover, .dropzone.drag-over { border-color: var(--accent); background: rgba(255,102,0,.05); }
+    .dropzone input { display: none; }
+    .dropzone-icon { font-size: 2rem; margin-bottom: .5rem; }
+    .dropzone-text { color: var(--dim); font-size: .9rem; }
+    .pipeline { margin-top: 1rem; }
+    .pipeline-step { display: flex; align-items: center; gap: .5rem; padding: .5rem .75rem; border-left: 3px solid var(--border); margin-left: .5rem; font-size: .85rem; transition: all .3s; }
+    .pipeline-step.active { border-color: var(--accent); color: var(--accent); }
+    .pipeline-step.done { border-color: var(--green); color: var(--green); }
+    .pipeline-step.wasm { border-color: #818cf8; color: #818cf8; }
+    .pipeline-step .label { flex: 1; }
+    .pipeline-step .where { font-size: .7rem; opacity: .6; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
+    .card h3 { color: var(--accent); font-size: 1rem; margin-bottom: .5rem; }
+    .card-meta { font-size: .8rem; color: var(--dim); margin-bottom: .75rem; display: flex; gap: 1rem; }
+    .card-body { font-size: .9rem; line-height: 1.5; }
+    .card-tags { margin-top: .75rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+    .tag { font-size: .7rem; padding: 2px 8px; border-radius: 4px; background: #1a1a2e; color: var(--accent); }
+    .tag-urgent { background: #3b1111; color: var(--red); }
+    .preview { background: #0d0d1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+    .preview h4 { color: #818cf8; font-size: .85rem; margin-bottom: .5rem; }
+    .preview pre { font-size: .8rem; white-space: pre-wrap; color: var(--dim); max-height: 300px; overflow-y: auto; }
+    .wasm-badge { font-size: .65rem; background: #818cf8; color: #000; padding: 1px 6px; border-radius: 3px; margin-left: .5rem; }
+    .config { margin-top: 1.5rem; }
+    .config h4 { font-size: .85rem; color: var(--dim); margin-bottom: .5rem; }
+    .config input { width: 100%; padding: .5rem; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--fg); font-size: .85rem; margin-bottom: .5rem; }
+    .config label { font-size: .8rem; color: var(--dim); display: block; margin-bottom: .25rem; }
+    .btn { padding: .5rem 1rem; border-radius: 6px; border: none; cursor: pointer; font-size: .85rem; font-weight: 600; transition: all .15s; }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-primary:hover { background: #e65c00; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--fg); }
+    .filter-list { list-style: none; margin-top: .5rem; }
+    .filter-item { padding: .5rem .75rem; border-radius: 6px; cursor: pointer; font-size: .9rem; display: flex; justify-content: space-between; }
+    .filter-item:hover { background: rgba(255,255,255,.05); }
+    .filter-item.active { background: rgba(255,102,0,.1); color: var(--accent); }
+    .filter-count { font-size: .75rem; background: var(--surface); border: 1px solid var(--border); padding: 0 6px; border-radius: 999px; }
+    .status-bar { grid-column: 1 / -1; border-top: 1px solid var(--border); padding: .5rem 1.5rem; font-size: .75rem; color: var(--dim); display: flex; gap: 2rem; }
+    @media (max-width: 768px) { .app { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 1px solid var(--border); } }
+    
+
   </style>
 </head>
 <body>
-  <h1>Town in a Box</h1>
-  <p class="tagline">Meetings, hotlines, issues, and archives — a digital civic OS from one repo</p>
+  <div class="app">
+    <header>
+      <h1>Town in a Box</h1>
+      <span class="badge badge-live" id="statusBadge">LIVE</span>
+      <div class="header-right">
+        <button class="btn btn-ghost" onclick="toggleConfig()">Settings</button>
+      </div>
+    </header>
+    <div class="sidebar">
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-icon">🏛</div>
+        <div class="dropzone-text">Drop meeting recordings, hotline calls, or issue reports<br><small>or click to browse</small></div>
+        <input type="file" id="fileInput" accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.webm,.txt,.md" multiple>
+      </div>
+      <div class="pipeline" id="pipeline" style="display:none;">
+        <div class="pipeline-step" data-step="upload"><span class="label">Upload to repo</span><span class="where">GitHub API</span></div>
+        <div class="pipeline-step" data-step="process"><span class="label">bonfyre-transcribe</span><span class="where">Actions</span></div>
+        <div class="pipeline-step" data-step="brief"><span class="label">bonfyre-brief</span><span class="where wasm-badge">WASM</span></div>
+        <div class="pipeline-step" data-step="tag"><span class="label">bonfyre-tag</span><span class="where">Actions</span></div>
+        <div class="pipeline-step" data-step="embed"><span class="label">bonfyre-embed + vec</span><span class="where">Actions</span></div>
+        <div class="pipeline-step" data-step="index"><span class="label">bonfyre-index</span><span class="where">Actions</span></div>
+        <div class="pipeline-step" data-step="render"><span class="label">bonfyre-render</span><span class="where">Actions</span></div>
+        <div class="pipeline-step" data-step="emit"><span class="label">bonfyre-emit</span><span class="where">Actions</span></div>
 
-  <div class="card">
-    <h2>How it works</h2>
-    <p>Drop files in <code>input/</code>, commit, and watch Git hooks run the
-    <a href="https://github.com/Nickgonzales76017/bonfyre">Bonfyre</a> pipeline.
-    Pages rebuild automatically.</p>
+      </div>
+      <div class="preview" id="wasmPreview" style="display:none;">
+        <h4>Live Preview <span class="wasm-badge">WASM</span></h4>
+        <pre id="previewContent">Processing…</pre>
+      </div>
+      <h4 style="margin-top:1.5rem;font-size:.85rem;color:var(--dim);">Filter</h4>
+      <ul class="filter-list" id="filterList">
+        <li class="filter-item active" data-filter="all">All <span class="filter-count" id="countAll">0</span></li>
+        <li class="filter-item" data-filter="meetings">Meetings <span class="filter-count">0</span></li>
+        <li class="filter-item" data-filter="issues">Issues <span class="filter-count">0</span></li>
+        <li class="filter-item" data-filter="flagged">Urgent <span class="filter-count">0</span></li>
+
+      </ul>
+      <div class="config" id="configPanel" style="display:none;">
+        <h4>GitHub Connection</h4>
+        <label>Repository (owner/repo)</label>
+        <input type="text" id="cfgRepo" placeholder="you/pages-town-box">
+        <label>Branch</label>
+        <input type="text" id="cfgBranch" value="main">
+        <label>Token (PAT with repo scope)</label>
+        <input type="password" id="cfgToken" placeholder="ghp_…">
+        <button class="btn btn-primary" onclick="saveConfig()" style="width:100%;margin-top:.5rem;">Save</button>
+      </div>
+    </div>
+    <div class="main" id="boardContent">
+      <div style="text-align:center;padding:4rem 2rem;color:var(--dim);">
+        <p style="font-size:1.2rem;margin-bottom:.5rem;">No civic records yet</p>
+        <p>Drop a town meeting recording, hotline call, or issue report.</p>
+        <p style="margin-top:1.5rem;font-size:.85rem;line-height:1.6;">
+          <strong style="color:var(--accent);">Path 3 — Hybrid Architecture</strong><br>
+          Upload recording → <strong style="color:var(--accent)">Actions</strong> transcribes, tags, indexes civic DB<br>→ <strong style="color:#818cf8">WASM</strong> briefs in-browser → Actions renders meeting/issue cards → Pages deploys
+        </p>
+      </div>
+    </div>
+    <div class="status-bar">
+      <span>Bonfyre Hybrid: <strong style="color:#818cf8">WASM</strong> (brief) + <strong style="color:var(--accent)">Actions</strong> (pipeline)</span>
+      <span id="lastUpdate">Last update: —</span>
+      <span style="margin-left:auto;">
+        <a href="https://github.com/Nickgonzales76017/bonfyre" style="color:var(--accent);text-decoration:none;">Powered by Bonfyre</a> — 47 C11 binaries, ~2.1 MB
+      </span>
+    </div>
   </div>
+  <script>
+    const STORE_KEY = 'bonfyre_pages-town-box_config';
+    const ITEMS_KEY = 'bonfyre_pages-town-box_items';
+    const INPUT_PATH = 'input';
 
-  <div class="card">
-    <h2>Architecture</h2>
-    <p><code>git commit</code> → <code>post-commit</code> hook → Bonfyre binaries → <code>site/</code> → GitHub Pages</p>
-  </div>
+    let config = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    let items = JSON.parse(localStorage.getItem(ITEMS_KEY) || '[]');
+    let briefWorker = null;
 
-  <div id="content">
-    <!-- Generated content appears here -->
-  </div>
+    function toggleConfig() {
+      const p = document.getElementById('configPanel');
+      p.style.display = p.style.display === 'none' ? 'block' : 'none';
+      if (p.style.display === 'block') {
+        document.getElementById('cfgRepo').value = config.repo || '';
+        document.getElementById('cfgBranch').value = config.branch || 'main';
+        document.getElementById('cfgToken').value = config.token || '';
+      }
+    }
+    function saveConfig() {
+      config = {
+        repo: document.getElementById('cfgRepo').value.trim(),
+        branch: document.getElementById('cfgBranch').value.trim() || 'main',
+        token: document.getElementById('cfgToken').value.trim()
+      };
+      localStorage.setItem(STORE_KEY, JSON.stringify(config));
+      document.getElementById('configPanel').style.display = 'none';
+    }
 
-  <footer>
-    Powered by <a href="https://github.com/Nickgonzales76017/bonfyre">Bonfyre</a> — 47 C11 binaries, ~2.1 MB.
-  </footer>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault(); dropzone.classList.remove('drag-over');
+      [...e.dataTransfer.files].forEach(f => handleFile(f));
+    });
+    fileInput.addEventListener('change', e => { [...e.target.files].forEach(f => handleFile(f)); });
+
+    async function handleFile(file) {
+      if (!config.repo || !config.token) { toggleConfig(); alert('Configure your GitHub repo and token first.'); return; }
+      const name = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const path = INPUT_PATH + '/' + ts + '_' + name;
+
+      showPipeline(); updateStep('upload', 'active');
+      try {
+        const content = await fileToBase64(file);
+        await githubCommit(path, content, '[pages-town-box] ' + name);
+        updateStep('upload', 'done');
+        updateStep('process', 'active');
+
+        showWasmPreview('Processing ' + name + '…\n\nActions workflow triggered.\nPipeline running on GitHub runner.\n\nOnce transcript arrives, bonfyre-brief.wasm\ngenerates a live preview here instantly.');
+        updateStep('brief', 'wasm');
+
+        const item = { id: ts, file: name, time: new Date().toLocaleString(), status: 'processing', brief: null, tags: [], flagged: false };
+        items.unshift(item);
+        localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
+        renderBoard();
+        pollForCompletion(ts, name);
+      } catch (err) { console.error('Upload failed:', err); alert('Upload failed: ' + err.message); hidePipeline(); }
+    }
+
+    async function githubCommit(path, contentBase64, message) {
+      const resp = await fetch('https://api.github.com/repos/' + config.repo + '/contents/' + path, {
+        method: 'PUT',
+        headers: { 'Authorization': 'Bearer ' + config.token, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
+        body: JSON.stringify({ message: message, content: contentBase64, branch: config.branch })
+      });
+      if (!resp.ok) { const b = await resp.json().catch(() => ({})); throw new Error(b.message || 'HTTP ' + resp.status); }
+      return resp.json();
+    }
+    async function githubGetFile(path) {
+      const resp = await fetch('https://api.github.com/repos/' + config.repo + '/contents/' + path + '?ref=' + config.branch, {
+        headers: { 'Authorization': 'Bearer ' + config.token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!resp.ok) return null;
+      const data = await resp.json();
+      return atob(data.content);
+    }
+    async function githubCheckWorkflow() {
+      const resp = await fetch('https://api.github.com/repos/' + config.repo + '/actions/runs?branch=' + config.branch + '&per_page=1', {
+        headers: { 'Authorization': 'Bearer ' + config.token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!resp.ok) return null;
+      const data = await resp.json();
+      return data.workflow_runs?.[0] || null;
+    }
+
+    function initBriefWorker() {
+      if (window.Worker) {
+        try {
+          briefWorker = new Worker('js/brief-worker.js');
+          briefWorker.onmessage = function(e) {
+            if (e.data.type === 'brief') {
+              showWasmPreview(e.data.result);
+              const idx = items.findIndex(h => h.id === e.data.id);
+              if (idx >= 0) { items[idx].brief = e.data.result; items[idx].status = 'previewed'; localStorage.setItem(ITEMS_KEY, JSON.stringify(items)); renderBoard(); }
+            }
+          };
+        } catch (_) {}
+      }
+    }
+    function runBriefWasm(transcript, itemId) {
+      if (briefWorker) { briefWorker.postMessage({ type: 'brief', text: transcript, id: itemId }); updateStep('brief', 'active'); }
+    }
+
+    async function pollForCompletion(itemId, fileName) {
+      const base = fileName.replace(/\.[^.]*$/, '');
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        if (++attempts > 60) { clearInterval(poll); return; }
+        try {
+          const transcript = await githubGetFile('artifacts/' + base + '.transcript.json');
+          if (transcript) {
+            updateStep('process', 'done');
+            runBriefWasm(transcript, itemId);
+            const brief = await githubGetFile('artifacts/' + base + '.brief.json');
+            if (brief) updateStep('brief', 'done');
+            const tags = await githubGetFile('artifacts/' + base + '.tags.json');
+            if (tags) { try { const p = JSON.parse(tags); const idx = items.findIndex(h => h.id === itemId); if (idx >= 0 && p.tags) items[idx].tags = p.tags; } catch (_) {} }
+            const workflow = await githubCheckWorkflow();
+            if (workflow && workflow.status === 'completed') {
+              updateStep('render', 'done'); updateStep('emit', 'done');
+              const idx = items.findIndex(h => h.id === itemId);
+              if (idx >= 0) { items[idx].status = 'complete'; if (brief) { try { items[idx].brief = JSON.parse(brief).summary || brief; } catch (_) { items[idx].brief = brief; } } }
+              localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
+              renderBoard();
+              document.getElementById('lastUpdate').textContent = 'Last update: ' + new Date().toLocaleTimeString();
+              setTimeout(hidePipeline, 2000); clearInterval(poll);
+            }
+          }
+        } catch (err) { console.warn('[bonfyre] poll:', err.message); }
+      }, 5000);
+    }
+
+    function showPipeline() { document.getElementById('pipeline').style.display = 'block'; document.getElementById('statusBadge').className = 'badge badge-processing'; document.getElementById('statusBadge').textContent = 'PROCESSING'; }
+    function hidePipeline() { document.getElementById('statusBadge').className = 'badge badge-live'; document.getElementById('statusBadge').textContent = 'LIVE'; }
+    function updateStep(step, state) { const el = document.querySelector('[data-step="' + step + '"]'); if (el) el.className = 'pipeline-step ' + state; }
+    function showWasmPreview(text) { document.getElementById('wasmPreview').style.display = 'block'; document.getElementById('previewContent').textContent = text; }
+    function fileToBase64(file) { return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result.split(',')[1]); r.onerror = reject; r.readAsDataURL(file); }); }
+
+    function renderBoard() {
+      const container = document.getElementById('boardContent');
+      if (!items.length) return;
+      const activeFilter = document.querySelector('.filter-item.active')?.dataset.filter || 'all';
+      const filtered = activeFilter === 'all' ? items :
+                       activeFilter === 'flagged' ? items.filter(h => h.flagged) :
+                       items.filter(h => h.tags?.includes(activeFilter));
+      let html = '';
+      for (const h of filtered) {
+        const statusColor = h.status === 'complete' ? 'var(--green)' : h.status === 'processing' ? 'var(--yellow)' : '#818cf8';
+        const statusLabel = h.status === 'complete' ? '✓ Complete' : h.status === 'processing' ? '⏳ Processing…' : '🔮 WASM Preview';
+        html += `<div class="card"><h3>🏛 ${h.file}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div><div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
+
+      }
+      container.innerHTML = html;
+      document.getElementById('countAll').textContent = items.length;
+    }
+
+    document.getElementById('filterList').addEventListener('click', e => {
+      const item = e.target.closest('.filter-item');
+      if (!item) return;
+      document.querySelectorAll('.filter-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      renderBoard();
+    });
+
+    
+
+    initBriefWorker();
+    renderBoard();
+  </script>
 </body>
 </html>
