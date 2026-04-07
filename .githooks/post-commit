@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# ─── Bonfyre Pages App Hook ──────────────────────────────────────────────────
+set -euo pipefail
+
+BONFYRE_BIN="${BONFYRE_BIN:-$HOME/.local/bin}"
+export PATH="$BONFYRE_BIN:$PATH"
+
+log() { printf "\033[0;33m[bonfyre]\033[0m %s\n" "$1"; }
+err() { printf "\033[0;31m[bonfyre]\033[0m %s\n" "$1" >&2; }
+
+require_bin() {
+  for b in "$@"; do
+    command -v "$b" >/dev/null 2>&1 || { err "Missing: $b (run 'make install' in bonfyre-oss)"; return 1; }
+  done
+}
+
+BINS=(bonfyre-media-prep bonfyre-transcribe bonfyre-brief bonfyre-tag bonfyre-embed bonfyre-vec bonfyre-emit bonfyre-render bonfyre-index)
+require_bin "${BINS[@]}" || exit 0
+
+# Detect meeting recordings
+MEETINGS=$(git diff-tree --no-commit-id --name-only -r HEAD -- input/meetings/ 2>/dev/null || true)
+# Detect hotline calls (from bonfyre-tel)
+HOTLINE=$(git diff-tree --no-commit-id --name-only -r HEAD -- input/hotline/ 2>/dev/null || true)
+# Detect written issues
+ISSUES=$(git diff-tree --no-commit-id --name-only -r HEAD -- input/issues/ 2>/dev/null || true)
+
+[ -z "$MEETINGS" ] && [ -z "$HOTLINE" ] && [ -z "$ISSUES" ] && exit 0
+
+process_audio() {
+  local f="$1" category="$2"
+  local base=$(basename "$f" | sed 's/\.[^.]*$//')
+  log "[$category/$base] transcribe → brief → tag → embed → index"
+  bonfyre-media-prep "$f" --out "artifacts/${base}.prep.json"
+  bonfyre-transcribe "artifacts/${base}.prep.json" --out "artifacts/${base}.transcript.json"
+  bonfyre-brief "artifacts/${base}.transcript.json" --out "artifacts/${base}.brief.json"
+  bonfyre-tag "artifacts/${base}.brief.json" --out "artifacts/${base}.tags.json"
+  bonfyre-embed "artifacts/${base}.tags.json" --out "artifacts/${base}.embed.json"
+  bonfyre-vec "artifacts/${base}.embed.json" --insert-db "artifacts/civic.db"
+  bonfyre-index "artifacts/${base}.tags.json" --db "artifacts/civic.db"
+}
+
+# Process meetings
+for f in $MEETINGS; do
+  [ -f "$f" ] || continue
+  process_audio "$f" "meeting"
+  base=$(basename "$f" | sed 's/\.[^.]*$//')
+  bonfyre-render "artifacts/${base}.brief.json" --template meeting --out "site/meetings/${base}.html"
+done
+
+# Process hotline calls
+for f in $HOTLINE; do
+  [ -f "$f" ] || continue
+  process_audio "$f" "hotline"
+done
+
+# Process written issues
+for f in $ISSUES; do
+  [ -f "$f" ] || continue
+  base=$(basename "$f" | sed 's/\.[^.]*$//')
+  bonfyre-tag "$f" --out "artifacts/${base}.tags.json"
+  bonfyre-embed "artifacts/${base}.tags.json" --out "artifacts/${base}.embed.json"
+  bonfyre-index "artifacts/${base}.tags.json" --db "artifacts/civic.db"
+done
+
+log "Building civic site…"
+bonfyre-emit artifacts/ --out site/ --format html
+log "Town site updated."

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# ─── Bonfyre Pages App Hook ──────────────────────────────────────────────────
+set -euo pipefail
+
+BONFYRE_BIN="${BONFYRE_BIN:-$HOME/.local/bin}"
+export PATH="$BONFYRE_BIN:$PATH"
+
+log() { printf "\033[0;33m[bonfyre]\033[0m %s\n" "$1"; }
+err() { printf "\033[0;31m[bonfyre]\033[0m %s\n" "$1" >&2; }
+
+require_bin() {
+  for b in "$@"; do
+    command -v "$b" >/dev/null 2>&1 || { err "Missing: $b (run 'make install' in bonfyre-oss)"; return 1; }
+  done
+}
+log "Post-merge: rebuilding civic site…"
+require_bin bonfyre-emit || exit 0
+[ -d artifacts ] && bonfyre-emit artifacts/ --out site/ --format html && log "Civic site rebuilt."

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Town in a Box</title>
+  <style>
+    :root{--bg:#0a0a0a;--fg:#e0e0e0;--accent:#ff6600}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--fg);max-width:800px;margin:0 auto;padding:2rem}
+    h1{color:var(--accent);margin-bottom:.5rem}
+    .tagline{opacity:.7;margin-bottom:2rem}
+    .card{background:#151515;border:1px solid #333;border-radius:8px;padding:1.5rem;margin-bottom:1rem}
+    .card h2{color:var(--accent);font-size:1.1rem;margin-bottom:.5rem}
+    code{background:#1a1a2e;padding:2px 6px;border-radius:3px;font-size:.9em}
+    footer{margin-top:3rem;opacity:.4;font-size:.85rem}
+    a{color:var(--accent)}
+  </style>
+</head>
+<body>
+  <h1>Town in a Box</h1>
+  <p class="tagline">Meetings, hotlines, issues, and archives — a digital civic OS from one repo</p>
+
+  <div class="card">
+    <h2>How it works</h2>
+    <p>Drop files in <code>input/</code>, commit, and watch Git hooks run the
+    <a href="https://github.com/Nickgonzales76017/bonfyre">Bonfyre</a> pipeline.
+    Pages rebuild automatically.</p>
+  </div>
+
+  <div class="card">
+    <h2>Architecture</h2>
+    <p><code>git commit</code> → <code>post-commit</code> hook → Bonfyre binaries → <code>site/</code> → GitHub Pages</p>
+  </div>
+
+  <div id="content">
+    <!-- Generated content appears here -->
+  </div>
+
+  <footer>
+    Powered by <a href="https://github.com/Nickgonzales76017/bonfyre">Bonfyre</a> — 47 C11 binaries, ~2.1 MB.
+  </footer>
+</body>
+</html>

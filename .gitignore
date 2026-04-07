@@ -1,0 +1,11 @@
+# Bonfyre intermediates
+artifacts/*.tmp
+artifacts/*.lock
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Large models (use Git LFS)
+*.onnx
+*.bin
