@@ -172,6 +172,7 @@
       </span>
     </div>
   </div>
+  <script src="js/github-intake.js"></script>
   <script>
     const STORE_KEY = 'bonfyre_pages-town-box_config';
     const ITEMS_KEY = 'bonfyre_pages-town-box_items';
@@ -215,7 +216,7 @@
     async function handleFile(file) {
       if (!config.repo) { toggleConfig(); alert('Configure the GitHub repository first.'); return; }
       const category = document.getElementById('routeSelect').value;
-      const preparedName = buildPreparedName(file.name);
+      const preparedName = BonfyreGitHubIntake.createPreparedName(file.name);
       const targetPath = INPUT_PATH + '/' + category + '/' + preparedName;
       const itemId = preparedName.replace(/\.[^.]*$/, '');
 
@@ -234,7 +235,7 @@
       };
 
       try {
-        const preparedDownload = buildPreparedDownload(file, preparedName);
+        const preparedDownload = BonfyreGitHubIntake.createPreparedDownload(file, preparedName);
         updateStep('prepare', 'done');
         updateStep('commit', 'active');
         showIntakePreview(activeIntake, preparedDownload);
@@ -250,11 +251,11 @@
           targetPath
         };
 
-        items = [item, ...items.filter(existing => existing.id !== itemId)];
+        items = BonfyreGitHubIntake.upsertItem(items, item);
         localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
         renderBoard();
 
-        if (file.type.startsWith('text/') || /\.(md|txt)$/i.test(file.name)) {
+        if (BonfyreGitHubIntake.isTextLikeFile(file)) {
           const text = await file.text();
           runBriefWasm(text, itemId);
         } else {
@@ -268,25 +269,20 @@
     }
 
     async function githubGetFile(path) {
-      const url = 'https://raw.githubusercontent.com/' + config.repo + '/' + config.branch + '/' + path;
-      const resp = await fetch(url, { cache: 'no-store' });
-      if (!resp.ok) return null;
-      return resp.text();
-    }
-
-    function buildPreparedName(name) {
-      const safe = name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-      return ts + '_' + safe;
-    }
-
-    function buildPreparedDownload(file, preparedName) {
-      const href = URL.createObjectURL(file);
-      return { href, download: preparedName };
+      return BonfyreGitHubIntake.fetchRawFile({
+        repo: config.repo,
+        branch: config.branch,
+        path: path
+      });
     }
 
     function buildUploadFolderUrl(category) {
-      return 'https://github.com/' + config.repo + '/tree/' + config.branch + '/' + INPUT_PATH + '/' + category;
+      return BonfyreGitHubIntake.buildUploadFolderUrl({
+        repo: config.repo,
+        branch: config.branch,
+        inputPath: INPUT_PATH,
+        subdir: category
+      });
     }
 
     function showIntakePreview(intake, preparedDownload) {
@@ -296,16 +292,12 @@
       const uploadLink = document.getElementById('openUploadFolder');
 
       panel.style.display = 'block';
-      content.textContent =
-        'Prepared file: ' + intake.file + '\n' +
-        'Route: ' + intake.category + '\n' +
-        'Repo path: ' + intake.targetPath + '\n\n' +
-        'Safer launch path:\n' +
-        '1. Download the intake-ready copy from this panel.\n' +
-        '2. Open the GitHub folder for the selected route.\n' +
-        '3. Use GitHub\'s own "Add file" -> "Upload files" flow.\n' +
-        '4. Commit to ' + config.branch + ' to trigger Bonfyre Actions.\n\n' +
-        'This keeps write auth inside GitHub instead of storing a PAT in the browser.';
+      content.textContent = BonfyreGitHubIntake.buildIntakeMessage({
+        preparedName: intake.file,
+        routeLabel: intake.category,
+        targetPath: intake.targetPath,
+        branch: config.branch
+      });
 
       downloadLink.href = preparedDownload.href;
       downloadLink.download = preparedDownload.download;
@@ -370,12 +362,7 @@
               if (idx >= 0) {
                 items[idx].status = 'complete';
                 if (brief) {
-                  try {
-                    const parsed = JSON.parse(brief);
-                    items[idx].brief = parsed.summary || parsed.brief || brief;
-                  } catch (_) {
-                    items[idx].brief = brief;
-                  }
+                  items[idx].brief = BonfyreGitHubIntake.parseBriefPayload(brief);
                 }
               }
               localStorage.setItem(ITEMS_KEY, JSON.stringify(items));
@@ -392,7 +379,6 @@
     function hidePipeline() { document.getElementById('statusBadge').className = 'badge badge-live'; document.getElementById('statusBadge').textContent = 'LIVE'; }
     function updateStep(step, state) { const el = document.querySelector('[data-step="' + step + '"]'); if (el) el.className = 'pipeline-step ' + state; }
     function showWasmPreview(text) { document.getElementById('wasmPreview').style.display = 'block'; document.getElementById('previewContent').textContent = text; }
-    function fileToBase64(file) { return new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result.split(',')[1]); r.onerror = reject; r.readAsDataURL(file); }); }
 
     function renderBoard() {
       const container = document.getElementById('boardContent');
