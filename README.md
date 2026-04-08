@@ -34,5 +34,5 @@ input/  →  git commit  →  .githooks/post-commit (Bonfyre pipeline)
 
 ## Powered By
 
-[Bonfyre](https://github.com/Nickgonzales76017/bonfyre) — 47 composable C11 binaries. ~2.1 MB total.
+[Bonfyre](https://github.com/Nickgonzales76017/bonfyre) — 48 composable C11 binaries. ~2.1 MB total.
 
