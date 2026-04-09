@@ -592,7 +592,7 @@
       if (!item) return [];
       const links = [];
       if (item.sourceUrl) {
-        links.push({ href: item.sourceUrl, label: item.sourceLabel || 'Open source' });
+        links.push({ href: item.sourceUrl, label: item.sourceLabel || 'Open public source' });
       }
       if (Array.isArray(item.sourceLinks)) {
         item.sourceLinks.forEach(link => {
@@ -606,13 +606,13 @@
       const links = getSourceLinks(item);
       if (!links.length) return '';
       const meta = [item.sourceTitle, item.publisher, item.license].filter(Boolean).join(' · ');
-      const copy = item.sourceCopy || 'Track this record back to the source Bonfyre structured so the value is visible end to end.';
+      const copy = item.sourceCopy || 'Trace this record back to the public origin Bonfyre processed so the value is visible end to end.';
       return `<div class="source-block">
-        <div class="source-title">Source</div>
+        <div class="source-title">Provenance</div>
         <div class="source-copy">${escapeHtml(copy)}</div>
         ${meta ? `<div class="source-meta">${escapeHtml(meta)}</div>` : ''}
         <div class="source-actions">${links.map(link => `
-          <a class="result-link" href="${escapeHtml(link.href || '#')}" target="_blank" rel="noreferrer noopener">${escapeHtml(link.label || 'Open source')}</a>
+          <a class="result-link" href="${escapeHtml(link.href || '#')}" target="_blank" rel="noreferrer noopener">${escapeHtml(link.label || 'Open public source')}</a>
         `).join('')}</div>
       </div>`;
     }
