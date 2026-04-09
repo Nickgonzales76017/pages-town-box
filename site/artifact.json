@@ -11,7 +11,7 @@
       "atom_id": "source-transcript",
       "content_hash": "",
       "media_type": "text/plain",
-      "path": "site/demos/town-box/transcript.json",
+      "path": "demos/town-box/transcript.json",
       "label": "Source transcript"
     }
   ],
@@ -39,7 +39,7 @@
     {
       "realization_id": "brief-md",
       "media_type": "text/markdown",
-      "path": "site/demos/town-box/brief.md",
+      "path": "demos/town-box/brief.md",
       "pinned": true,
       "produced_by": "op-brief-extract",
       "label": "Brief markdown"
@@ -47,7 +47,7 @@
     {
       "realization_id": "brief-meta",
       "media_type": "application/json",
-      "path": "site/demos/town-box/brief-meta.json",
+      "path": "demos/town-box/brief-meta.json",
       "pinned": true,
       "produced_by": "op-brief-meta",
       "label": "Brief metadata"

@@ -70,6 +70,7 @@
       <h1>Town in a Box</h1>
       <span class="badge badge-live" id="statusBadge">LIVE</span>
       <div class="header-right">
+        <button class="btn btn-ghost" id="toggleDemoBtn" type="button">Clear Demo Data</button>
         <button class="btn btn-ghost" onclick="toggleConfig()">Settings</button>
       </div>
     </header>
@@ -176,12 +177,15 @@
   <script>
     const STORE_KEY = 'bonfyre_pages-town-box_config';
     const ITEMS_KEY = 'bonfyre_pages-town-box_items';
+    const DEMO_HIDDEN_KEY = 'bonfyre_pages-town-box_hide_demo';
     const INPUT_PATH = 'input';
     const DEFAULT_REPO = 'Nickgonzales76017/pages-town-box';
     const DEFAULT_BRANCH = 'main';
 
     let config = Object.assign({ repo: DEFAULT_REPO, branch: DEFAULT_BRANCH }, JSON.parse(localStorage.getItem(STORE_KEY) || '{}'));
     let items = JSON.parse(localStorage.getItem(ITEMS_KEY) || '[]');
+    let demoItems = [];
+    let demoHidden = localStorage.getItem(DEMO_HIDDEN_KEY) === '1';
     let briefWorker = null;
     let activeIntake = null;
 
@@ -200,6 +204,68 @@
       };
       localStorage.setItem(STORE_KEY, JSON.stringify(config));
       document.getElementById('configPanel').style.display = 'none';
+    }
+
+    function getVisibleItems() {
+      return (demoHidden ? [] : demoItems).concat(items);
+    }
+
+    function updateDemoButton() {
+      const btn = document.getElementById('toggleDemoBtn');
+      btn.textContent = demoHidden ? 'Show Demo Data' : 'Clear Demo Data';
+    }
+
+    function toggleDemoData() {
+      demoHidden = !demoHidden;
+      localStorage.setItem(DEMO_HIDDEN_KEY, demoHidden ? '1' : '0');
+      updateDemoButton();
+      renderBoard();
+    }
+
+    async function fetchText(path) {
+      const normalized = String(path || '').replace(/^site\//, '').replace(/^\/+/, '');
+      const resp = await fetch(normalized + '?v=' + Date.now(), { cache: 'no-store' });
+      if (!resp.ok) return null;
+      return resp.text();
+    }
+
+    async function loadDemoItems() {
+      try {
+        const rawArtifact = await fetchText('artifact.json');
+        if (!rawArtifact) return;
+        const artifact = JSON.parse(rawArtifact);
+        const briefRealization = (artifact.realizations || []).find(function(r) { return r.realization_id === 'brief-md'; });
+        const metaRealization = (artifact.realizations || []).find(function(r) { return r.realization_id === 'brief-meta'; });
+        const atom = (artifact.atoms || []).find(function(a) { return a.atom_id === 'source-transcript'; });
+
+        const briefRaw = briefRealization ? await fetchText(briefRealization.path) : null;
+        const metaRaw = metaRealization ? await fetchText(metaRealization.path) : null;
+        const transcriptRaw = atom ? await fetchText(atom.path) : null;
+
+        let meta = {};
+        let transcript = {};
+        try { meta = metaRaw ? JSON.parse(metaRaw) : {}; } catch (_) {}
+        try { transcript = transcriptRaw ? JSON.parse(transcriptRaw) : {}; } catch (_) {}
+
+        const title = meta.title || transcript.title || artifact.metadata?.title || 'Town in a Box demo';
+        const time = meta.recorded_at || transcript.recorded_at || artifact.created_at || new Date().toISOString();
+        const summary = meta.summary || briefRaw || 'Demo civic record loaded from published Bonfyre artifact output.';
+        const tags = Array.isArray(meta.tags) && meta.tags.length ? meta.tags : [meta.category || transcript.category || 'meetings'];
+
+        demoItems = [{
+          id: 'demo-town-box',
+          file: title,
+          time: new Date(time).toLocaleString(),
+          status: meta.status || 'complete',
+          brief: summary,
+          tags: tags,
+          flagged: !!meta.flagged,
+          demo: true
+        }];
+      } catch (err) {
+        console.warn('[bonfyre] demo load failed:', err.message);
+        demoItems = [];
+      }
     }
 
     const dropzone = document.getElementById('dropzone');
@@ -382,20 +448,43 @@
 
     function renderBoard() {
       const container = document.getElementById('boardContent');
-      if (!items.length) return;
+      const visibleItems = getVisibleItems();
+      if (!visibleItems.length) {
+        container.innerHTML = `<div style="text-align:center;padding:4rem 2rem;color:var(--dim);">
+          <p style="font-size:1.2rem;margin-bottom:.5rem;">No civic records yet</p>
+          <p>Load the demo data again or prepare a town meeting recording, hotline call, or issue report.</p>
+          <p style="margin-top:1rem;font-size:.85rem;line-height:1.6;">
+            Demo mode shows the app working end-to-end on published Bonfyre outputs.<br>
+            Clear it when you want a blank slate for your own data.
+          </p>
+        </div>`;
+        document.getElementById('countAll').textContent = '0';
+        const counts = document.querySelectorAll('.filter-list .filter-count');
+        if (counts[1]) counts[1].textContent = '0';
+        if (counts[2]) counts[2].textContent = '0';
+        if (counts[3]) counts[3].textContent = '0';
+        return;
+      }
       const activeFilter = document.querySelector('.filter-item.active')?.dataset.filter || 'all';
-      const filtered = activeFilter === 'all' ? items :
-                       activeFilter === 'flagged' ? items.filter(h => h.flagged) :
-                       items.filter(h => h.tags?.includes(activeFilter));
+      const filtered = activeFilter === 'all' ? visibleItems :
+                       activeFilter === 'flagged' ? visibleItems.filter(h => h.flagged) :
+                       visibleItems.filter(h => h.tags?.includes(activeFilter));
       let html = '';
       for (const h of filtered) {
         const statusColor = h.status === 'complete' ? 'var(--green)' : h.status === 'processing' ? 'var(--yellow)' : '#818cf8';
         const statusLabel = h.status === 'complete' ? '✓ Complete' : h.status === 'processing' ? '⏳ Processing…' : '↗ Ready for GitHub Upload';
-        html += `<div class="card"><h3>🏛 ${h.file}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div><div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
+        html += `<div class="card"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div><div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
 
       }
       container.innerHTML = html;
-      document.getElementById('countAll').textContent = items.length;
+      document.getElementById('countAll').textContent = String(visibleItems.length);
+      const meetings = visibleItems.filter(h => h.tags?.includes('meetings')).length;
+      const issues = visibleItems.filter(h => h.tags?.includes('issues')).length;
+      const urgent = visibleItems.filter(h => h.flagged).length;
+      const counts = document.querySelectorAll('.filter-list .filter-count');
+      if (counts[1]) counts[1].textContent = String(meetings);
+      if (counts[2]) counts[2].textContent = String(issues);
+      if (counts[3]) counts[3].textContent = String(urgent);
     }
 
     document.getElementById('filterList').addEventListener('click', e => {
@@ -409,9 +498,11 @@
     
 
     document.getElementById('markUploaded').addEventListener('click', markUploaded);
+    document.getElementById('toggleDemoBtn').addEventListener('click', toggleDemoData);
 
     initBriefWorker();
-    renderBoard();
+    updateDemoButton();
+    loadDemoItems().finally(renderBoard);
   </script>
 </body>
 </html>
