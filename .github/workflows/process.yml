@@ -23,3 +23,5 @@ jobs:
       process_script: scripts/process-inputs.sh
       deploy_path: site
       artifact_name: pages-town-box-runtime
+      bonfyre_repo: Nickgonzales76017/bonfyre-oss
+      bonfyre_ref: main
