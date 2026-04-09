@@ -27,6 +27,16 @@ while IFS= read -r f; do
         bonfyre-render "artifacts/${base}.brief.json" --template meeting --out "${DEPLOY_PATH}/meetings/${base}.html"
       fi
       ;;
+    json)
+      bonfyre-brief "$f" --out "artifacts/${base}.brief.json"
+      bonfyre-tag "artifacts/${base}.brief.json" --out "artifacts/${base}.tags.json"
+      bonfyre-embed "artifacts/${base}.tags.json" --out "artifacts/${base}.embed.json"
+      bonfyre-vec "artifacts/${base}.embed.json" --insert-db "artifacts/civic.db"
+      bonfyre-index "artifacts/${base}.tags.json" --db "artifacts/civic.db"
+      if [ "$category" = "meetings" ]; then
+        bonfyre-render "artifacts/${base}.brief.json" --template meeting --out "${DEPLOY_PATH}/meetings/${base}.html"
+      fi
+      ;;
     md|txt)
       bonfyre-tag "$f" --out "artifacts/${base}.tags.json"
       bonfyre-embed "artifacts/${base}.tags.json" --out "artifacts/${base}.embed.json"
