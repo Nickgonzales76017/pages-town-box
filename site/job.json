@@ -1,0 +1,14 @@
+{
+  "app_name": "Town in a Box",
+  "repository": "Nickgonzales76017/pages-town-box",
+  "ref": "main",
+  "sha": "a35660e67b1c2de55c43d2ba26c9b011cb4561b5",
+  "run_id": "24194612868",
+  "run_attempt": "1",
+  "changed_count": 2,
+  "changed_files": [
+    "input/.gitkeep",
+    "input/meetings/town-hall-briefing-demo.json"
+  ],
+  "generated_at": "2026-04-09T14:07:08.991208Z"
+}

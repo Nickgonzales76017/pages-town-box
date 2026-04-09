@@ -1,0 +1,39 @@
+{
+  "sourceSystem": "BonfyreNarrate",
+  "version": "3.0.0",
+  "artifactType": "narrated-artifact",
+  "title": "Bonfyre Artifact",
+  "createdAt": "2026-04-09T14:07:08Z",
+  "sourceTextPath": "artifacts/town-hall-briefing-demo/brief/brief.md",
+  "narrationTextPath": "artifacts/town-hall-briefing-demo/narrate/narration.txt",
+  "narrationFormat": "paced-text",
+  "audioPath": "artifacts/town-hall-briefing-demo/narrate/artifact.wav",
+  "audioFormat": "wav",
+  "voiceModel": "",
+  "toneProfilePath": "",
+  "sourceFeatures": "",
+  "reference": "",
+  "renderStatus": "skipped",
+  "renderReason": "piper_unavailable",
+  "prosody": {
+    "rate_pct": 0.0,
+    "pitch_st": 0.0,
+    "volume_pct": 0.0,
+    "pause_ms": 600,
+    "emphasis": 0
+  },
+  "postProcessing": {
+    "pitchShift": false,
+    "targetF0Hz": 0.0,
+    "energyEnvelope": false,
+    "targetEnergy": 0.0
+  },
+  "fidelity": { "verified": false },
+  "wavQuality": {
+    "dynamic_range_db": 0.00,
+    "spectral_continuity": 0.0000,
+    "pitch_stability": 0.0000,
+    "energy_consistency": 0.0000
+  },
+  "renderLogPath": "artifacts/town-hall-briefing-demo/narrate/render.log"
+}

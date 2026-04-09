@@ -1,0 +1,11 @@
+{
+  "app_name": "Town in a Box",
+  "status": "processed",
+  "changed_count": 2,
+  "changed_files": [
+    "input/.gitkeep",
+    "input/meetings/town-hall-briefing-demo.json"
+  ],
+  "deploy_path": "site",
+  "artifact_manifest": "site/artifact.json"
+}
