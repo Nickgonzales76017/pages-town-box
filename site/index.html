@@ -47,23 +47,15 @@
     .output-chip { background: #182417; color: #9ae6b4; }
     .swap-chip { background: #241a12; color: #f6ad55; }
     .capability-copy { font-size: .8rem; color: var(--dim); margin: .65rem 0; }
-    .compare-block { margin-top: 1rem; padding: 1rem; border: 1px solid #273246; border-radius: 8px; background: linear-gradient(180deg,#0e1522,#0b1018); }
-    .compare-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: .75rem; }
-    .compare-title { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: #93c5fd; }
-    .compare-note { font-size: .78rem; color: var(--dim); }
-    .compare-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .85rem; }
-    .compare-column { padding: .9rem; border: 1px solid #223047; border-radius: 8px; background: #0b111a; }
-    .compare-column.layered { border-color: #35576a; background: #0c1518; }
-    .compare-kicker { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin-bottom: .35rem; }
-    .compare-column h4 { font-size: .95rem; margin-bottom: .4rem; }
-    .compare-copy { font-size: .8rem; line-height: 1.45; color: var(--dim); margin-bottom: .65rem; }
-    .metric-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .45rem; margin-bottom: .7rem; }
-    .metric-card { padding: .5rem .6rem; border: 1px solid #253042; border-radius: 6px; background: #0d131d; }
-    .metric-value { font-size: .95rem; color: var(--accent); font-weight: 700; }
-    .metric-label { font-size: .68rem; color: var(--dim); text-transform: uppercase; letter-spacing: .07em; }
-    .compare-actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .55rem; }
-    .compare-link { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .7rem; border-radius: 6px; border: 1px solid #38465d; background: rgba(255,255,255,.02); color: var(--fg); text-decoration: none; font-size: .78rem; font-weight: 600; }
-    .compare-link:hover { border-color: var(--accent); color: var(--accent); }
+    .result-block { margin-top: 1rem; padding: 1rem; border: 1px solid #273246; border-radius: 8px; background: linear-gradient(180deg,#0f1520,#0b1016); }
+    .result-title { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: #93c5fd; margin-bottom: .45rem; }
+    .result-copy { font-size: .86rem; line-height: 1.5; color: var(--fg); margin-bottom: .75rem; }
+    .result-list { display: grid; gap: .45rem; margin-bottom: .8rem; }
+    .result-item { padding: .65rem .75rem; border: 1px solid #223047; border-radius: 8px; background: #0b111a; font-size: .84rem; color: var(--fg); }
+    .result-item strong { color: var(--accent); display: block; margin-bottom: .15rem; }
+    .result-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .result-link { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .7rem; border-radius: 6px; border: 1px solid #38465d; background: rgba(255,255,255,.02); color: var(--fg); text-decoration: none; font-size: .78rem; font-weight: 600; }
+    .result-link:hover { border-color: var(--accent); color: var(--accent); }
     .tag { font-size: .7rem; padding: 2px 8px; border-radius: 4px; background: #1a1a2e; color: var(--accent); }
     .tag-urgent { background: #3b1111; color: var(--red); }
     .preview { background: #0d0d1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
@@ -84,7 +76,6 @@
     .filter-item.active { background: rgba(255,102,0,.1); color: var(--accent); }
     .filter-count { font-size: .75rem; background: var(--surface); border: 1px solid var(--border); padding: 0 6px; border-radius: 999px; }
     .status-bar { grid-column: 1 / -1; border-top: 1px solid var(--border); padding: .5rem 1.5rem; font-size: .75rem; color: var(--dim); display: flex; gap: 2rem; }
-    @media (max-width: 980px) { .compare-grid { grid-template-columns: 1fr; } }
     @media (max-width: 768px) { .app { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 1px solid var(--border); } }
     
 
@@ -103,12 +94,12 @@
     <div class="sidebar">
       <div class="dropzone" id="dropzone">
         <div class="dropzone-icon">🏛</div>
-        <div class="dropzone-text">Choose a civic file to prepare for GitHub-native intake<br><small>or click to browse</small></div>
+        <div class="dropzone-text">Add a meeting, issue report, or hotline note<br><small>start with the demo or bring your own file</small></div>
         <input type="file" id="fileInput" accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.webm,.txt,.md" multiple>
       </div>
       <div class="config" style="margin-top:0;">
-        <h4>Route To</h4>
-        <label>Input folder</label>
+        <h4>Send This To</h4>
+        <label>Town stream</label>
         <select id="routeSelect" style="width:100%;padding:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--fg);font-size:.85rem;">
           <option value="meetings">meetings</option>
           <option value="issues">issues</option>
@@ -159,11 +150,11 @@
     </div>
     <div class="main" id="boardContent">
       <div style="text-align:center;padding:4rem 2rem;color:var(--dim);">
-        <p style="font-size:1.2rem;margin-bottom:.5rem;">No civic records yet</p>
-        <p>Drop a town meeting recording, hotline call, or issue report.</p>
+        <p style="font-size:1.2rem;margin-bottom:.5rem;">Start with the demo civic record or add your own file</p>
+        <p>Town in a Box turns one public input into a clear summary, a searchable record, and a reusable town memory.</p>
         <p style="margin-top:1.5rem;font-size:.85rem;line-height:1.6;">
-          <strong style="color:var(--accent);">Path 3 — Hybrid Architecture</strong><br>
-          Prepare intake copy → upload with <strong style="color:var(--accent)">GitHub’s own web UI</strong><br>→ <strong style="color:var(--accent)">Actions</strong> transcribes, tags, indexes civic DB → <strong style="color:#818cf8">WASM</strong> previews briefs → Pages deploys
+          Open the seeded demo to see the full flow working now.<br>
+          When you're ready, add your own civic file and the app will follow the same path.
         </p>
         <div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;text-align:center;font-size:.8rem;">
           <div style="padding:.5rem;border:1px solid var(--border);border-radius:6px;">
@@ -357,64 +348,31 @@
       });
     }
 
-    function renderCapabilityBlock(item) {
-      if (!item || !Array.isArray(item.modules) || !item.modules.length) return '';
-      const chain = item.modules.map(step => `<span class="operator-chip">${escapeHtml(step)}</span>`).join('');
-      const outputs = (item.outputs || []).map(step => `<span class="output-chip">${escapeHtml(step)}</span>`).join('');
-      const swaps = (item.optionalModules || []).map(step => `<span class="swap-chip">${escapeHtml(step)}</span>`).join('');
-      return `<div class="capability-block">
-        <div class="capability-title">Composed With Bonfyre</div>
-        <div class="operator-chain">${chain}</div>
-        <p class="capability-copy">${escapeHtml(item.compositionNote || '')}</p>
-        <div class="output-grid">${outputs}</div>
-        ${swaps ? `<p class="capability-copy">Easy swap-ins: ${swaps}</p>` : ''}
-      </div>`;
-    }
-
-    function renderMetricCards(metrics) {
-      if (!metrics) return '';
-      const entries = Object.entries(metrics).filter(([, value]) => value !== undefined && value !== null && value !== '');
-      if (!entries.length) return '';
-      return `<div class="metric-grid">${entries.map(([label, value]) => `
-        <div class="metric-card">
-          <div class="metric-value">${escapeHtml(value)}</div>
-          <div class="metric-label">${escapeHtml(label)}</div>
-        </div>`).join('')}</div>`;
-    }
-
-    function renderCompareLinks(links) {
+    function renderResultLinks(links) {
       if (!Array.isArray(links) || !links.length) return '';
-      return `<div class="compare-actions">${links.map(link => `
-        <a class="compare-link" href="${escapeHtml(link.href || '#')}" target="_blank" rel="noreferrer noopener">${escapeHtml(link.label || 'Open artifact')}</a>
+      return `<div class="result-actions">${links.map(link => `
+        <a class="result-link" href="${escapeHtml(link.href || '#')}" target="_blank" rel="noreferrer noopener">${escapeHtml(link.label || 'Open artifact')}</a>
       `).join('')}</div>`;
     }
 
-    function renderCompareColumn(column, layered) {
-      if (!column) return '';
-      const chips = (column.modules || []).map(step => `<span class="operator-chip">${escapeHtml(step)}</span>`).join('');
-      const outputs = (column.outputs || []).map(step => `<span class="output-chip">${escapeHtml(step)}</span>`).join('');
-      return `<div class="compare-column ${layered ? 'layered' : ''}">
-        <div class="compare-kicker">${escapeHtml(column.kicker || '')}</div>
-        <h4>${escapeHtml(column.title || '')}</h4>
-        <p class="compare-copy">${escapeHtml(column.copy || '')}</p>
-        ${chips ? `<div class="operator-chain">${chips}</div>` : ''}
-        ${renderMetricCards(column.metrics)}
-        ${outputs ? `<div class="output-grid">${outputs}</div>` : ''}
-        ${renderCompareLinks(column.links)}
-      </div>`;
-    }
-
-    function renderCompareBlock(item) {
-      if (!item || !item.compare || !item.compare.floor || !item.compare.layered) return '';
-      return `<div class="compare-block">
-        <div class="compare-header">
-          <div class="compare-title">${escapeHtml(item.compare.title || 'With And Without The Layer')}</div>
-          <div class="compare-note">${escapeHtml(item.compare.note || '')}</div>
-        </div>
-        <div class="compare-grid">
-          ${renderCompareColumn(item.compare.floor, false)}
-          ${renderCompareColumn(item.compare.layered, true)}
-        </div>
+    function renderResultBlock(item) {
+      if (!item) return '';
+      const quickWins = [];
+      if (item.compare?.floor?.title) quickWins.push({ title: 'Start here', copy: item.compare.floor.title });
+      if (item.compare?.layered?.title) quickWins.push({ title: 'Then it adds', copy: item.compare.layered.title });
+      if (Array.isArray(item.outputs) && item.outputs.length) quickWins.push({ title: 'You can open', copy: item.outputs.slice(0, 3).join(', ') });
+      const links = []
+        .concat(item.compare?.floor?.links || [])
+        .concat(item.compare?.layered?.links || [])
+        .filter((link, index, arr) => link && link.href && arr.findIndex(other => other.href === link.href && other.label === link.label) === index)
+        .slice(0, 3);
+      return `<div class="result-block">
+        <div class="result-title">What This Gives You</div>
+        <p class="result-copy">${escapeHtml(item.compare?.note || item.compositionNote || 'Open the demo outputs, then bring your own civic file when you want to replace the seeded record.')}</p>
+        <div class="result-list">${quickWins.map(entry => `
+          <div class="result-item"><strong>${escapeHtml(entry.title)}</strong>${escapeHtml(entry.copy)}</div>
+        `).join('')}</div>
+        ${renderResultLinks(links)}
       </div>`;
     }
 
@@ -755,7 +713,7 @@
       for (const h of filtered) {
         const statusColor = h.status === 'complete' ? 'var(--green)' : h.status === 'processing' ? 'var(--yellow)' : '#818cf8';
         const statusLabel = h.status === 'complete' ? '✓ Complete' : h.status === 'processing' ? '⏳ Processing…' : '↗ Ready for GitHub Upload';
-        html += `<div class="card" data-item-id="${escapeHtml(h.id)}"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderCapabilityBlock(h)}${renderCompareBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
+        html += `<div class="card" data-item-id="${escapeHtml(h.id)}"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderResultBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
 
       }
       container.innerHTML = html;
