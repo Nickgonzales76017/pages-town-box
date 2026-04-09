@@ -263,8 +263,36 @@
     function setPreviewState(text, link) {
       const nodes = ensurePreviewNodes();
       if (!nodes) return false;
+      let detail = nodes.panel.querySelector('.bonfyre-detail-card');
+      if (detail) detail.remove();
+      let artifact = nodes.panel.querySelector('.bonfyre-artifact-view');
+      if (artifact) artifact.remove();
       nodes.panel.style.display = 'block';
       nodes.content.textContent = String(text || '');
+      nodes.actions.innerHTML = '';
+      let search = nodes.panel.querySelector('.bonfyre-demo-search');
+      if (search) search.style.display = 'none';
+      if (link && link.href) {
+        const anchor = document.createElement('a');
+        anchor.className = 'btn btn-ghost';
+        anchor.href = link.href;
+        anchor.target = '_blank';
+        anchor.rel = 'noreferrer noopener';
+        anchor.textContent = link.label || 'Open artifact';
+        nodes.actions.appendChild(anchor);
+      }
+      return true;
+    }
+
+    function setPreviewHtml(html, link) {
+      const nodes = ensurePreviewNodes();
+      if (!nodes) return false;
+      let detail = nodes.panel.querySelector('.bonfyre-detail-card');
+      if (detail) detail.remove();
+      let artifact = nodes.panel.querySelector('.bonfyre-artifact-view');
+      if (artifact) artifact.remove();
+      nodes.panel.style.display = 'block';
+      nodes.content.innerHTML = html;
       nodes.actions.innerHTML = '';
       let search = nodes.panel.querySelector('.bonfyre-demo-search');
       if (search) search.style.display = 'none';
@@ -288,7 +316,16 @@
       if (/\.json($|\?)/.test(link.href)) {
         try { body = JSON.stringify(JSON.parse(raw), null, 2); } catch (_) {}
       }
-      return setPreviewState((note ? note + '\n\n' : '') + body, link);
+      const htmlBody = /\.md($|\?)/.test(link.href || '')
+        ? `<div class="bonfyre-artifact-body" style="font-size:.78rem;line-height:1.5;color:var(--fg);max-height:320px;overflow:auto;white-space:pre-wrap;">${escapeHtml(body)}</div>`
+        : `<div class="bonfyre-artifact-body" style="font-size:.78rem;line-height:1.5;color:var(--fg);max-height:320px;overflow:auto;white-space:pre-wrap;">${escapeHtml(body)}</div>`;
+      return setPreviewHtml(`
+        <div class="bonfyre-artifact-view" style="margin-top:.75rem;padding:.85rem;border:1px solid var(--border);border-radius:10px;background:#0d131d;">
+          <h4 style="font-size:.85rem;color:var(--accent);margin-bottom:.4rem;">${escapeHtml(link.label || 'Artifact preview')}</h4>
+          ${note ? `<div style="font-size:.78rem;color:var(--dim);margin-bottom:.55rem;line-height:1.45;">${escapeHtml(note)}</div>` : ''}
+          ${htmlBody}
+        </div>
+      `, link);
     }
 
     function ensureSearchNodes() {
@@ -346,6 +383,8 @@
     function openSearchExperience(item, label) {
       const nodes = ensureSearchNodes();
       if (!nodes) return false;
+      let detail = nodes.panel.querySelector('.bonfyre-detail-card');
+      if (detail) detail.remove();
       nodes.panel.style.display = 'block';
       nodes.content.textContent = String((item.outputNotes && item.outputNotes[label]) || 'Search across the town demo to see why this output matters.');
       nodes.actions.innerHTML = '';
@@ -361,7 +400,16 @@
         if (!button) return;
         const target = getVisibleItems().find(entry => String(entry.id) === String(button.dataset.demoOpen));
         if (!target) return;
-        setPreviewState((target.whyItMatters ? target.whyItMatters + '\n\n' : '') + String(target.brief || ''));
+        let existing = nodes.panel.querySelector('.bonfyre-detail-card');
+        if (existing) existing.remove();
+        nodes.searchRoot.insertAdjacentHTML('afterend', `
+          <div class="bonfyre-detail-card" style="margin-top:.75rem;padding:.85rem;border:1px solid var(--border);border-radius:10px;background:#0d131d;">
+            <h4 style="font-size:.9rem;color:var(--accent);margin-bottom:.35rem;">${escapeHtml(target.file || 'Demo record')}</h4>
+            <div style="font-size:.73rem;color:var(--dim);margin-bottom:.45rem;">${escapeHtml(target.time || 'Demo dataset')}</div>
+            <div style="font-size:.8rem;line-height:1.5;color:var(--fg);margin-bottom:.6rem;">${escapeHtml(target.whyItMatters || target.brief || '')}</div>
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap;">${(target.tags || []).slice(0, 5).map(tag => `<span style="font-size:.68rem;padding:.22rem .45rem;border-radius:999px;border:1px solid var(--border);background:#111827;color:#cbd5e1;">${escapeHtml(tag)}</span>`).join('')}</div>
+          </div>
+        `);
       };
       return true;
     }
