@@ -167,26 +167,24 @@
         </p>
         <div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;text-align:center;font-size:.8rem;">
           <div style="padding:.5rem;border:1px solid var(--border);border-radius:6px;">
-            <div style="color:var(--accent);font-weight:600;font-size:1rem;">0.997</div>
-            <div>HCP v3.2 quality</div>
+            <div style="color:var(--accent);font-weight:600;font-size:1rem;">One civic input</div>
+            <div>meeting, issue, or report in</div>
           </div>
           <div style="padding:.5rem;border:1px solid var(--border);border-radius:6px;">
-            <div style="color:var(--accent);font-weight:600;font-size:1rem;">&lt; 8 ms</div>
-            <div>per-stage latency</div>
+            <div style="color:var(--accent);font-weight:600;font-size:1rem;">Shared record</div>
+            <div>summary, memory, and public trail out</div>
           </div>
           <div style="padding:.5rem;border:1px solid var(--border);border-radius:6px;">
-            <div style="color:var(--accent);font-weight:600;font-size:1rem;">9 layers</div>
-            <div>hallucination guard</div>
+            <div style="color:var(--accent);font-weight:600;font-size:1rem;">Clear compare</div>
+            <div>core record versus reusable town memory</div>
           </div>
           <div style="padding:.5rem;border:1px solid var(--border);border-radius:6px;">
-            <div style="color:var(--accent);font-weight:600;font-size:1rem;">48</div>
-            <div>static C11 binaries</div>
+            <div style="color:var(--accent);font-weight:600;font-size:1rem;">No prompt UI</div>
+            <div>the civic workflow stays simple</div>
           </div>
         </div>
         <p style="margin-top:1rem;font-size:.75rem;color:var(--dim);">
-          OpenAI-compatible via <strong>bonfyre-proxy</strong> &middot;
-          Lambda Tensors compression (9.3%) &middot;
-          167 tests passing
+          Start from the seeded town record, then clear demo data and run your own civic intake.
         </p>
       </div>
     </div>
@@ -195,7 +193,7 @@
       <span id="lastUpdate">Last update: —</span>
       <span style="margin-left:auto;">
         <a href="https://github.com/Nickgonzales76017/bonfyre" style="color:var(--accent);text-decoration:none;">Powered by Bonfyre</a>
-        &mdash; 48 C11 binaries, ~2.1 MB &middot; HCP v3.2 (0.997 quality) &middot; &lt; 8 ms/stage &middot; OpenAI-compatible
+        &mdash; one civic artifact, several public-facing surfaces
       </span>
     </div>
   </div>
@@ -517,10 +515,9 @@
               copy: 'This is the always-on path: transcript atom, brief extraction, and metadata emit. It gives the city a readable status artifact even before search and retrieval layers appear.',
               modules: ['bonfyre-transcribe', 'bonfyre-brief', 'bonfyre-tag'],
               metrics: {
-                'policy score': '0.568',
-                'latency': '0.301',
-                'utility': '0.711',
-                'outputs': '2 core surfaces'
+                'Best for': 'Fast public record updates',
+                'You get': 'A readable civic summary and status object',
+                'Good when': 'You need a clean public-facing record first'
               },
               outputs: ['civic summary card', 'public issue trail'],
               links: [
@@ -534,10 +531,9 @@
               copy: 'When the layer earns its place, the same civic record becomes indexed memory and a retrieval-ready artifact. That keeps the town system thin while making every record more reusable later.',
               modules: ['bonfyre-brief', 'bonfyre-tag', 'bonfyre-embed', 'bonfyre-index', 'bonfyre-emit'],
               metrics: {
-                'policy score': '0.624',
-                'uplift': '+0.056',
-                'latency delta': '+0.079',
-                'outputs': '4 realized surfaces'
+                'Adds': 'Search and memory surfaces',
+                'Why it matters': 'The same civic record becomes reusable across time',
+                'Keeps': 'One shared town artifact'
               },
               outputs: ['civic summary card', 'searchable record', 'vector memory', 'public issue trail'],
               links: [
