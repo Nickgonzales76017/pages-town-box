@@ -56,6 +56,23 @@
     .result-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
     .result-link { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .7rem; border-radius: 6px; border: 1px solid #38465d; background: rgba(255,255,255,.02); color: var(--fg); text-decoration: none; font-size: .78rem; font-weight: 600; }
     .result-link:hover { border-color: var(--accent); color: var(--accent); }
+    .dataset-overview { margin-bottom: 1rem; padding: 1rem; border: 1px solid #273246; border-radius: 12px; background: linear-gradient(180deg,#0f1520,#0b1016); }
+    .dataset-head { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:flex-start; margin-bottom:.75rem; }
+    .dataset-head h3 { font-size: 1rem; color: #f8fafc; margin-bottom: .2rem; }
+    .dataset-copy { font-size: .82rem; color: #a3a3a3; line-height: 1.5; max-width: 58rem; }
+    .dataset-stats { display:flex; gap:.55rem; flex-wrap:wrap; }
+    .dataset-stat { min-width:112px; padding:.65rem .75rem; border-radius:10px; border:1px solid #2f3b4b; background:#0b111a; }
+    .dataset-stat strong { display:block; color:var(--accent); font-size:1rem; margin-bottom:.18rem; }
+    .dataset-stat span { display:block; font-size:.72rem; color:var(--dim); }
+    .dataset-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.75rem; }
+    .dataset-panel { padding:.8rem; border-radius:10px; border:1px solid #223047; background:#0b111a; }
+    .dataset-panel h4 { font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:#93c5fd; margin-bottom:.55rem; }
+    .dataset-panel p { font-size:.78rem; color:#a3a3a3; line-height:1.5; margin-bottom:.55rem; }
+    .query-pills { display:flex; gap:.45rem; flex-wrap:wrap; }
+    .query-pill { padding:.35rem .6rem; border-radius:999px; border:1px solid #334155; background:#111827; color:#e5e7eb; font-size:.75rem; cursor:pointer; }
+    .query-pill:hover { border-color:var(--accent); color:var(--accent); }
+    .board-limit { margin:0 0 1rem; padding:.7rem .85rem; border:1px solid #223047; border-radius:10px; background:#0b111a; display:flex; justify-content:space-between; align-items:center; gap:.75rem; flex-wrap:wrap; }
+    .board-limit-copy { font-size:.78rem; color:#a3a3a3; }
     .tag { font-size: .7rem; padding: 2px 8px; border-radius: 4px; background: #1a1a2e; color: var(--accent); }
     .tag-urgent { background: #3b1111; color: var(--red); }
     .preview { background: #0d0d1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
@@ -380,7 +397,7 @@
       `).join('');
     }
 
-    function openSearchExperience(item, label) {
+    function openSearchExperience(item, label, initialQuery = '') {
       const nodes = ensureSearchNodes();
       if (!nodes) return false;
       let detail = nodes.panel.querySelector('.bonfyre-detail-card');
@@ -390,8 +407,8 @@
       nodes.actions.innerHTML = '';
       nodes.searchRoot.style.display = 'block';
       nodes.searchCopy.textContent = item.searchIntro || 'Multiple civic records make search, reuse, and memory visible inside the app instead of sending you to raw files.';
-      nodes.searchInput.value = '';
-      nodes.searchResults.innerHTML = renderSearchResults('');
+      nodes.searchInput.value = initialQuery;
+      nodes.searchResults.innerHTML = renderSearchResults(String(initialQuery || '').trim().toLowerCase());
       nodes.searchInput.oninput = function() {
         nodes.searchResults.innerHTML = renderSearchResults(String(nodes.searchInput.value || '').trim().toLowerCase());
       };
@@ -412,6 +429,68 @@
         `);
       };
       return true;
+    }
+
+    function collectTopTags(records) {
+      const counts = {};
+      records.forEach(record => {
+        (record.tags || []).forEach(tag => {
+          const raw = String(tag || '').trim();
+          const key = normalizeToken(raw);
+          if (!key || key === 'all' || key === 'meetings' || key === 'issues' || key === 'urgent' || key === 'flagged') return;
+          counts[raw] = (counts[raw] || 0) + 1;
+        });
+      });
+      return Object.entries(counts)
+        .map(([tag, count]) => ({ tag, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8);
+    }
+
+    function buildDatasetOverview(records) {
+      const flagged = records.filter(record => record.flagged).length;
+      const topTags = collectTopTags(records);
+      const topQueries = Array.from(new Set([
+        ...topTags.slice(0, 4).map(entry => entry.tag),
+        ...records.slice(0, 6).map(record => String(record.searchSummary || '').split(',')[0].trim()).filter(Boolean)
+      ])).slice(0, 6);
+      const outputs = {};
+      records.forEach(record => (record.outputs || []).forEach(output => outputs[output] = (outputs[output] || 0) + 1));
+      const topOutputs = Object.entries(outputs)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 4);
+      const lead = records[0] || {};
+      return `<section class="dataset-overview">
+        <div class="dataset-head">
+          <div>
+            <h3>Explore The Seeded Town Corpus</h3>
+            <div class="dataset-copy">${escapeHtml(lead.whyItMatters || 'This demo works best when many related civic records can be searched and connected inside the app.')}</div>
+          </div>
+          <div class="dataset-stats">
+            <div class="dataset-stat"><strong>${records.length}</strong><span>seeded civic records</span></div>
+            <div class="dataset-stat"><strong>${flagged}</strong><span>flagged town issues</span></div>
+            <div class="dataset-stat"><strong>${topTags.length}</strong><span>recurring community themes</span></div>
+          </div>
+        </div>
+        <div class="dataset-grid">
+          <div class="dataset-panel">
+            <h4>Try These Searches</h4>
+            <p>Start with a repeated issue and Bonfyre will show how meetings, hotline reports, and status objects stay connected.</p>
+            <div class="query-pills">${topQueries.map(query => `<button class="query-pill" type="button" data-demo-query="${escapeHtml(query)}">${escapeHtml(query)}</button>`).join('')}</div>
+          </div>
+          <div class="dataset-panel">
+            <h4>Town Patterns</h4>
+            <p>These are the strongest clusters in the seeded civic data right now.</p>
+            <div class="query-pills">${topTags.map(entry => `<button class="query-pill" type="button" data-demo-query="${escapeHtml(entry.tag)}">${escapeHtml(entry.tag)} · ${entry.count}</button>`).join('')}</div>
+          </div>
+          <div class="dataset-panel">
+            <h4>What This Corpus Produces</h4>
+            <p>The same civic record can stay useful across summary, search, memory, and public trail surfaces.</p>
+            <div class="query-pills">${topOutputs.map(entry => `<span class="query-pill" style="cursor:default;">${escapeHtml(entry.name)} · ${entry.count}</span>`).join('')}</div>
+          </div>
+        </div>
+      </section>`;
     }
 
     const MODULE_REPOS = {
@@ -484,6 +563,15 @@
           const token = normalizeToken(tagChip.textContent);
           const filter = Array.from(document.querySelectorAll('.filter-item')).find(node => normalizeToken(node.dataset.filter || node.textContent) === token);
           if (filter) filter.click();
+          return;
+        }
+
+        const queryNode = event.target.closest('[data-demo-query]');
+        if (queryNode) {
+          event.preventDefault();
+          const query = queryNode.getAttribute('data-demo-query') || queryNode.textContent || '';
+          const seed = getVisibleItems()[0];
+          if (seed) openSearchExperience(seed, (seed.searchOutputs && seed.searchOutputs[0]) || 'searchable record', query);
         }
       });
     }
@@ -837,8 +925,17 @@
       const filtered = activeFilter === 'all' ? visibleItems :
                        activeFilter === 'flagged' ? visibleItems.filter(h => h.flagged) :
                        visibleItems.filter(h => h.tags?.includes(activeFilter));
-      let html = '';
-      for (const h of filtered) {
+      const expandAll = localStorage.getItem(ITEMS_KEY + '_expand_cards') === '1';
+      const visibleLimit = 24;
+      const limited = !expandAll && filtered.length > visibleLimit ? filtered.slice(0, visibleLimit) : filtered;
+      let html = buildDatasetOverview(visibleItems);
+      if (filtered.length > visibleLimit) {
+        html += `<div class="board-limit">
+          <div class="board-limit-copy">${expandAll ? `Showing all ${filtered.length} records in this view.` : `Showing the first ${visibleLimit} records so the patterns stay readable. Search or expand when you want the full corpus.`}</div>
+          <button class="btn btn-ghost" type="button" id="toggleBoardLimit">${expandAll ? 'Show Fewer Records' : `Show All ${filtered.length} Records`}</button>
+        </div>`;
+      }
+      for (const h of limited) {
         const statusColor = h.status === 'complete' ? 'var(--green)' : h.status === 'processing' ? 'var(--yellow)' : '#818cf8';
         const statusLabel = h.status === 'complete' ? '✓ Complete' : h.status === 'processing' ? '⏳ Processing…' : '↗ Ready for GitHub Upload';
         html += `<div class="card" data-item-id="${escapeHtml(h.id)}"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderResultBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
@@ -853,6 +950,14 @@
       if (counts[1]) counts[1].textContent = String(meetings);
       if (counts[2]) counts[2].textContent = String(issues);
       if (counts[3]) counts[3].textContent = String(urgent);
+      const toggle = document.getElementById('toggleBoardLimit');
+      if (toggle) {
+        toggle.onclick = function() {
+          const next = localStorage.getItem(ITEMS_KEY + '_expand_cards') === '1' ? '0' : '1';
+          localStorage.setItem(ITEMS_KEY + '_expand_cards', next);
+          renderBoard();
+        };
+      }
     }
 
     document.getElementById('filterList').addEventListener('click', e => {
