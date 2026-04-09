@@ -170,7 +170,7 @@
         <p style="font-size:1.2rem;margin-bottom:.5rem;">Start with the demo civic record or add your own file</p>
         <p>Town in a Box turns one public input into a clear summary, a searchable record, and a reusable town memory.</p>
         <p style="margin-top:1.5rem;font-size:.85rem;line-height:1.6;">
-          Open the seeded demo to see the full flow working now.<br>
+          Open the reference corpus to see the full flow working now.<br>
           When you're ready, add your own civic file and the app will follow the same path.
         </p>
         <div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;text-align:center;font-size:.8rem;">
@@ -192,7 +192,7 @@
           </div>
         </div>
         <p style="margin-top:1rem;font-size:.75rem;color:var(--dim);">
-          Start from the seeded town record, then clear demo data and run your own civic intake.
+          Start from the reference town record, then clear demo data and run your own civic intake.
         </p>
       </div>
     </div>
@@ -422,7 +422,7 @@
         nodes.searchRoot.insertAdjacentHTML('afterend', `
           <div class="bonfyre-detail-card" style="margin-top:.75rem;padding:.85rem;border:1px solid var(--border);border-radius:10px;background:#0d131d;">
             <h4 style="font-size:.9rem;color:var(--accent);margin-bottom:.35rem;">${escapeHtml(target.file || 'Demo record')}</h4>
-            <div style="font-size:.73rem;color:var(--dim);margin-bottom:.45rem;">${escapeHtml(target.time || 'Demo dataset')}</div>
+            <div style="font-size:.73rem;color:var(--dim);margin-bottom:.45rem;">${escapeHtml(target.time || 'Reference corpus')}</div>
             <div style="font-size:.8rem;line-height:1.5;color:var(--fg);margin-bottom:.6rem;">${escapeHtml(target.whyItMatters || target.brief || '')}</div>
             <div style="display:flex;gap:.4rem;flex-wrap:wrap;">${(target.tags || []).slice(0, 5).map(tag => `<span style="font-size:.68rem;padding:.22rem .45rem;border-radius:999px;border:1px solid var(--border);background:#111827;color:#cbd5e1;">${escapeHtml(tag)}</span>`).join('')}</div>
           </div>
@@ -464,11 +464,11 @@
       return `<section class="dataset-overview">
         <div class="dataset-head">
           <div>
-            <h3>Explore The Seeded Town Corpus</h3>
+            <h3>Explore The Reference Town Corpus</h3>
             <div class="dataset-copy">${escapeHtml(lead.whyItMatters || 'This demo works best when many related civic records can be searched and connected inside the app.')}</div>
           </div>
           <div class="dataset-stats">
-            <div class="dataset-stat"><strong>${records.length}</strong><span>seeded civic records</span></div>
+            <div class="dataset-stat"><strong>${records.length}</strong><span>reference civic records</span></div>
             <div class="dataset-stat"><strong>${flagged}</strong><span>flagged town issues</span></div>
             <div class="dataset-stat"><strong>${topTags.length}</strong><span>recurring community themes</span></div>
           </div>
@@ -481,7 +481,7 @@
           </div>
           <div class="dataset-panel">
             <h4>Town Patterns</h4>
-            <p>These are the strongest clusters in the seeded civic data right now.</p>
+            <p>These are the strongest clusters in the reference civic data right now.</p>
             <div class="query-pills">${topTags.map(entry => `<button class="query-pill" type="button" data-demo-query="${escapeHtml(entry.tag)}">${escapeHtml(entry.tag)} · ${entry.count}</button>`).join('')}</div>
           </div>
           <div class="dataset-panel">
@@ -596,7 +596,7 @@
         .slice(0, 3);
       return `<div class="result-block">
         <div class="result-title">What This Gives You</div>
-        <p class="result-copy">${escapeHtml(item.compare?.note || item.compositionNote || 'Open the demo outputs, then bring your own civic file when you want to replace the seeded record.')}</p>
+        <p class="result-copy">${escapeHtml(item.compare?.note || item.compositionNote || 'Open the demo outputs, then bring your own civic file when you want to replace the reference record.')}</p>
         <div class="result-list">${quickWins.map(entry => `
           <div class="result-item"><strong>${escapeHtml(entry.title)}</strong>${escapeHtml(entry.copy)}</div>
         `).join('')}</div>
@@ -631,7 +631,7 @@
           const parsed = JSON.parse(multiDemo);
           if (Array.isArray(parsed) && parsed.length) {
             demoItems = parsed.map(item => ({
-              time: item.time === 'Demo dataset' ? 'Demo dataset' : item.time,
+              time: item.time === 'Reference corpus' ? 'Reference corpus' : item.time,
               status: item.status || 'complete',
               demo: true,
               ...item
@@ -672,7 +672,7 @@
           outputs: ['civic summary card', 'searchable record', 'vector memory', 'public issue trail'],
           searchSummary: 'Drainage work, repair window, resident hotline clarity.',
           whyItMatters: 'With more than one civic record in play, the searchable record stops being a raw file and becomes a way to connect related town issues over time.',
-          searchIntro: 'Search the seeded town records to see how one issue can be related to meeting updates, hotline complaints, and public status objects.',
+          searchIntro: 'Search the reference town records to see how one issue can be related to meeting updates, hotline complaints, and public status objects.',
           searchOutputs: ['searchable record', 'vector memory'],
           outputNotes: {
             'civic summary card': 'This is the user-facing civic record Bonfyre renders from the shared brief and metadata.',
@@ -694,7 +694,7 @@
         }, {
           id: 'demo-town-box-hotline',
           file: 'Resident Hotline Cluster — Drainage Follow-up',
-          time: 'Demo dataset',
+          time: 'Reference corpus',
           status: 'complete',
           brief: 'Residents called in about blocked drains, unclear detour signage, and repeated confusion about where updates would be posted during the repair window.',
           tags: ['issues', 'hotline'],
@@ -707,7 +707,7 @@
         }, {
           id: 'demo-town-box-meeting',
           file: 'Public Works Committee Update — East Drainage Corridor',
-          time: 'Demo dataset',
+          time: 'Reference corpus',
           status: 'complete',
           brief: 'Committee notes confirm the repair calendar, identify the contractor start date, and request a simpler public status page so hotline staff and residents cite the same update source.',
           tags: ['meetings'],
