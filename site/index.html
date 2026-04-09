@@ -228,6 +228,119 @@
       }[ch]));
     }
 
+    function normalizeToken(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    }
+
+    function ensurePreviewNodes() {
+      const panel = document.getElementById('wasmPreview') || document.getElementById('intakePreview');
+      const content = document.getElementById('previewContent') || document.getElementById('intakeContent');
+      if (!panel || !content) return null;
+      let actions = panel.querySelector('.bonfyre-preview-actions');
+      if (!actions) {
+        actions = document.createElement('div');
+        actions.className = 'bonfyre-preview-actions';
+        actions.style.display = 'flex';
+        actions.style.gap = '.5rem';
+        actions.style.flexWrap = 'wrap';
+        actions.style.marginTop = '.75rem';
+        content.insertAdjacentElement('afterend', actions);
+      }
+      return { panel, content, actions };
+    }
+
+    function setPreviewState(text, link) {
+      const nodes = ensurePreviewNodes();
+      if (!nodes) return false;
+      nodes.panel.style.display = 'block';
+      nodes.content.textContent = String(text || '');
+      nodes.actions.innerHTML = '';
+      if (link && link.href) {
+        const anchor = document.createElement('a');
+        anchor.className = 'btn btn-ghost';
+        anchor.href = link.href;
+        anchor.target = '_blank';
+        anchor.rel = 'noreferrer noopener';
+        anchor.textContent = link.label || 'Open artifact';
+        nodes.actions.appendChild(anchor);
+      }
+      return true;
+    }
+
+    const MODULE_REPOS = {
+      'bonfyre': 'https://github.com/Nickgonzales76017/bonfyre',
+      'bonfyre-core': 'https://github.com/Nickgonzales76017/bonfyre-core',
+      'bonfyre-intake': 'https://github.com/Nickgonzales76017/bonfyre-intake',
+      'bonfyre-pipeline': 'https://github.com/Nickgonzales76017/bonfyre-pipeline',
+      'bonfyre-embed': 'https://github.com/Nickgonzales76017/bonfyre-embed'
+    };
+
+    function openModuleReference(name) {
+      const token = normalizeToken(name);
+      const url = MODULE_REPOS[token] || MODULE_REPOS.bonfyre;
+      window.open(url, '_blank', 'noopener');
+    }
+
+    function getMappedAction(item, bucket, label) {
+      if (!item || !item[bucket]) return null;
+      return item[bucket][label] || item[bucket][normalizeToken(label)] || null;
+    }
+
+    function bindCardInteractions() {
+      if (document.body.dataset.bonfyreTownInteractions === '1') return;
+      document.body.dataset.bonfyreTownInteractions = '1';
+      document.addEventListener('click', function(event) {
+        const moduleChip = event.target.closest('.operator-chip,.swap-chip');
+        if (moduleChip) {
+          event.preventDefault();
+          const card = moduleChip.closest('[data-item-id]');
+          const item = card ? getVisibleItems().find(entry => String(entry.id) === String(card.dataset.itemId)) : null;
+          const label = moduleChip.textContent.trim();
+          const action = getMappedAction(item, 'moduleActions', label);
+          const note = item && item.moduleNotes && (item.moduleNotes[label] || item.moduleNotes[normalizeToken(label)]);
+          if (action && action.href) {
+            setPreviewState(action.note || note || (label + ' is available for this demo item.'), action);
+            return;
+          }
+          if (note) {
+            setPreviewState(note, { href: MODULE_REPOS[normalizeToken(label)] || MODULE_REPOS.bonfyre, label: 'Open module repo' });
+            return;
+          }
+          openModuleReference(label);
+          return;
+        }
+
+        const outputChip = event.target.closest('.output-chip');
+        if (outputChip) {
+          event.preventDefault();
+          const card = outputChip.closest('[data-item-id]');
+          const item = card ? getVisibleItems().find(entry => String(entry.id) === String(card.dataset.itemId)) : null;
+          const label = outputChip.textContent.trim();
+          const link = getMappedAction(item, 'outputLinks', label);
+          if (item && item.outputNotes && item.outputNotes[label]) {
+            setPreviewState(item.outputNotes[label], link);
+            return;
+          }
+          if (link) {
+            setPreviewState(label + ' is available for this demo item.', link);
+            return;
+          }
+        }
+
+        const tagChip = event.target.closest('.tag');
+        if (tagChip) {
+          event.preventDefault();
+          const token = normalizeToken(tagChip.textContent);
+          const filter = Array.from(document.querySelectorAll('.filter-item')).find(node => normalizeToken(node.dataset.filter || node.textContent) === token);
+          if (filter) filter.click();
+        }
+      });
+    }
+
     function renderCapabilityBlock(item) {
       if (!item || !Array.isArray(item.modules) || !item.modules.length) return '';
       const chain = item.modules.map(step => `<span class="operator-chip">${escapeHtml(step)}</span>`).join('');
@@ -296,7 +409,40 @@
           modules: ['bonfyre-transcribe', 'bonfyre-brief', 'bonfyre-tag', 'bonfyre-embed', 'bonfyre-index', 'bonfyre-render', 'bonfyre-emit'],
           optionalModules: ['bonfyre-query', 'bonfyre-graph', 'bonfyre-distribute'],
           outputs: ['civic summary card', 'searchable record', 'vector memory', 'public issue trail'],
-          compositionNote: 'Town in a Box turns one civic input into an indexed memory entry, an embedding-backed search surface, and a renderable public status object. bonfyre-query and bonfyre-graph can sit on top of the same artifact set without changing the intake flow.'
+          compositionNote: 'Town in a Box turns one civic input into an indexed memory entry, an embedding-backed search surface, and a renderable public status object. bonfyre-query and bonfyre-graph can sit on top of the same artifact set without changing the intake flow.',
+          moduleNotes: {
+            'bonfyre-transcribe': 'bonfyre-transcribe turns the civic source into the transcript atom that the rest of the flow reuses.',
+            'bonfyre-brief': 'bonfyre-brief creates the working summary object for the board and for downstream render steps.',
+            'bonfyre-tag': 'bonfyre-tag adds the operational labels that make the record filterable as a civic status object.',
+            'bonfyre-embed': 'bonfyre-embed creates the vector memory surface so this same record can participate in semantic retrieval.',
+            'bonfyre-index': 'bonfyre-index gives the civic board a queryable memory layout without changing the intake artifact.',
+            'bonfyre-render': 'bonfyre-render turns the structured artifact into the civic card and public surfaces.',
+            'bonfyre-emit': 'bonfyre-emit packages the result for publishable outputs.',
+            'bonfyre-query': 'bonfyre-query can sit on top of the same civic artifacts to support user-facing retrieval later.',
+            'bonfyre-graph': 'bonfyre-graph can expose relationships across the same civic artifact set without re-ingesting.',
+            'bonfyre-distribute': 'bonfyre-distribute is the next step if the same civic object needs to fan out to other channels.'
+          },
+          moduleActions: {
+            'bonfyre-transcribe': { href: 'demos/town-box/transcript.json', label: 'Open transcript atom' },
+            'bonfyre-brief': { href: 'demos/town-box/brief.md', label: 'Open brief output' },
+            'bonfyre-tag': { href: 'demos/town-box/brief-meta.json', label: 'Open tagging metadata' },
+            'bonfyre-embed': { href: 'artifact.json', label: 'Open published artifact manifest' },
+            'bonfyre-index': { href: 'artifact.json', label: 'Open published artifact manifest' },
+            'bonfyre-render': { href: 'demos/town-box/brief.md', label: 'Open rendered civic summary' },
+            'bonfyre-emit': { href: 'artifact.json', label: 'Open emitted artifact manifest' }
+          },
+          outputNotes: {
+            'civic summary card': 'This is the user-facing civic record Bonfyre renders from the shared brief and metadata.',
+            'searchable record': 'The same artifact set is already shaped so it can be searched or filtered without reprocessing.',
+            'vector memory': 'Embedding-backed retrieval uses the same underlying civic object, not a second disconnected data model.',
+            'public issue trail': 'The public trail is just another emitted view of the same underlying Bonfyre artifact.'
+          },
+          outputLinks: {
+            'civic summary card': { href: 'demos/town-box/brief.md', label: 'Open civic summary' },
+            'searchable record': { href: 'artifact.json', label: 'Open artifact manifest' },
+            'vector memory': { href: 'artifact.json', label: 'Open artifact manifest' },
+            'public issue trail': { href: 'demos/town-box/brief-meta.json', label: 'Open civic metadata' }
+          }
         }];
       } catch (err) {
         console.warn('[bonfyre] demo load failed:', err.message);
@@ -509,7 +655,7 @@
       for (const h of filtered) {
         const statusColor = h.status === 'complete' ? 'var(--green)' : h.status === 'processing' ? 'var(--yellow)' : '#818cf8';
         const statusLabel = h.status === 'complete' ? '✓ Complete' : h.status === 'processing' ? '⏳ Processing…' : '↗ Ready for GitHub Upload';
-        html += `<div class="card"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderCapabilityBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
+        html += `<div class="card" data-item-id="${escapeHtml(h.id)}"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderCapabilityBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
 
       }
       container.innerHTML = html;
@@ -535,6 +681,7 @@
 
     document.getElementById('markUploaded').addEventListener('click', markUploaded);
     document.getElementById('toggleDemoBtn').addEventListener('click', toggleDemoData);
+    bindCardInteractions();
 
     initBriefWorker();
     updateDemoButton();
