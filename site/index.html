@@ -47,6 +47,23 @@
     .output-chip { background: #182417; color: #9ae6b4; }
     .swap-chip { background: #241a12; color: #f6ad55; }
     .capability-copy { font-size: .8rem; color: var(--dim); margin: .65rem 0; }
+    .compare-block { margin-top: 1rem; padding: 1rem; border: 1px solid #273246; border-radius: 8px; background: linear-gradient(180deg,#0e1522,#0b1018); }
+    .compare-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: .75rem; }
+    .compare-title { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: #93c5fd; }
+    .compare-note { font-size: .78rem; color: var(--dim); }
+    .compare-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .85rem; }
+    .compare-column { padding: .9rem; border: 1px solid #223047; border-radius: 8px; background: #0b111a; }
+    .compare-column.layered { border-color: #35576a; background: #0c1518; }
+    .compare-kicker { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin-bottom: .35rem; }
+    .compare-column h4 { font-size: .95rem; margin-bottom: .4rem; }
+    .compare-copy { font-size: .8rem; line-height: 1.45; color: var(--dim); margin-bottom: .65rem; }
+    .metric-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .45rem; margin-bottom: .7rem; }
+    .metric-card { padding: .5rem .6rem; border: 1px solid #253042; border-radius: 6px; background: #0d131d; }
+    .metric-value { font-size: .95rem; color: var(--accent); font-weight: 700; }
+    .metric-label { font-size: .68rem; color: var(--dim); text-transform: uppercase; letter-spacing: .07em; }
+    .compare-actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .55rem; }
+    .compare-link { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .7rem; border-radius: 6px; border: 1px solid #38465d; background: rgba(255,255,255,.02); color: var(--fg); text-decoration: none; font-size: .78rem; font-weight: 600; }
+    .compare-link:hover { border-color: var(--accent); color: var(--accent); }
     .tag { font-size: .7rem; padding: 2px 8px; border-radius: 4px; background: #1a1a2e; color: var(--accent); }
     .tag-urgent { background: #3b1111; color: var(--red); }
     .preview { background: #0d0d1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
@@ -67,6 +84,7 @@
     .filter-item.active { background: rgba(255,102,0,.1); color: var(--accent); }
     .filter-count { font-size: .75rem; background: var(--surface); border: 1px solid var(--border); padding: 0 6px; border-radius: 999px; }
     .status-bar { grid-column: 1 / -1; border-top: 1px solid var(--border); padding: .5rem 1.5rem; font-size: .75rem; color: var(--dim); display: flex; gap: 2rem; }
+    @media (max-width: 980px) { .compare-grid { grid-template-columns: 1fr; } }
     @media (max-width: 768px) { .app { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 1px solid var(--border); } }
     
 
@@ -355,6 +373,53 @@
       </div>`;
     }
 
+    function renderMetricCards(metrics) {
+      if (!metrics) return '';
+      const entries = Object.entries(metrics).filter(([, value]) => value !== undefined && value !== null && value !== '');
+      if (!entries.length) return '';
+      return `<div class="metric-grid">${entries.map(([label, value]) => `
+        <div class="metric-card">
+          <div class="metric-value">${escapeHtml(value)}</div>
+          <div class="metric-label">${escapeHtml(label)}</div>
+        </div>`).join('')}</div>`;
+    }
+
+    function renderCompareLinks(links) {
+      if (!Array.isArray(links) || !links.length) return '';
+      return `<div class="compare-actions">${links.map(link => `
+        <a class="compare-link" href="${escapeHtml(link.href || '#')}" target="_blank" rel="noreferrer noopener">${escapeHtml(link.label || 'Open artifact')}</a>
+      `).join('')}</div>`;
+    }
+
+    function renderCompareColumn(column, layered) {
+      if (!column) return '';
+      const chips = (column.modules || []).map(step => `<span class="operator-chip">${escapeHtml(step)}</span>`).join('');
+      const outputs = (column.outputs || []).map(step => `<span class="output-chip">${escapeHtml(step)}</span>`).join('');
+      return `<div class="compare-column ${layered ? 'layered' : ''}">
+        <div class="compare-kicker">${escapeHtml(column.kicker || '')}</div>
+        <h4>${escapeHtml(column.title || '')}</h4>
+        <p class="compare-copy">${escapeHtml(column.copy || '')}</p>
+        ${chips ? `<div class="operator-chain">${chips}</div>` : ''}
+        ${renderMetricCards(column.metrics)}
+        ${outputs ? `<div class="output-grid">${outputs}</div>` : ''}
+        ${renderCompareLinks(column.links)}
+      </div>`;
+    }
+
+    function renderCompareBlock(item) {
+      if (!item || !item.compare || !item.compare.floor || !item.compare.layered) return '';
+      return `<div class="compare-block">
+        <div class="compare-header">
+          <div class="compare-title">${escapeHtml(item.compare.title || 'With And Without The Layer')}</div>
+          <div class="compare-note">${escapeHtml(item.compare.note || '')}</div>
+        </div>
+        <div class="compare-grid">
+          ${renderCompareColumn(item.compare.floor, false)}
+          ${renderCompareColumn(item.compare.layered, true)}
+        </div>
+      </div>`;
+    }
+
     function updateDemoButton() {
       const btn = document.getElementById('toggleDemoBtn');
       btn.textContent = demoHidden ? 'Show Demo Data' : 'Clear Demo Data';
@@ -442,6 +507,45 @@
             'searchable record': { href: 'artifact.json', label: 'Open artifact manifest' },
             'vector memory': { href: 'artifact.json', label: 'Open artifact manifest' },
             'public issue trail': { href: 'demos/town-box/brief-meta.json', label: 'Open civic metadata' }
+          },
+          compare: {
+            title: 'With And Without The New Layer',
+            note: 'The floor already yields a real civic record. The orchestration layer only stays when it expands the same artifact into search and memory surfaces that improve the town system instead of just decorating it.',
+            floor: {
+              kicker: 'Deterministic Floor',
+              title: 'Civic brief and public status object',
+              copy: 'This is the always-on path: transcript atom, brief extraction, and metadata emit. It gives the city a readable status artifact even before search and retrieval layers appear.',
+              modules: ['bonfyre-transcribe', 'bonfyre-brief', 'bonfyre-tag'],
+              metrics: {
+                'policy score': '0.568',
+                'latency': '0.301',
+                'utility': '0.711',
+                'outputs': '2 core surfaces'
+              },
+              outputs: ['civic summary card', 'public issue trail'],
+              links: [
+                { href: 'demos/town-box/brief.md', label: 'Open civic summary' },
+                { href: 'demos/town-box/brief-meta.json', label: 'Open civic metadata' }
+              ]
+            },
+            layered: {
+              kicker: 'Orchestrated Layer',
+              title: 'Same civic input, now searchable and reusable',
+              copy: 'When the layer earns its place, the same civic record becomes indexed memory and a retrieval-ready artifact. That keeps the town system thin while making every record more reusable later.',
+              modules: ['bonfyre-brief', 'bonfyre-tag', 'bonfyre-embed', 'bonfyre-index', 'bonfyre-emit'],
+              metrics: {
+                'policy score': '0.624',
+                'uplift': '+0.056',
+                'latency delta': '+0.079',
+                'outputs': '4 realized surfaces'
+              },
+              outputs: ['civic summary card', 'searchable record', 'vector memory', 'public issue trail'],
+              links: [
+                { href: 'artifact.json', label: 'Open artifact manifest' },
+                { href: 'demos/town-box/brief.md', label: 'Open civic summary' },
+                { href: 'demos/town-box/brief-meta.json', label: 'Open civic metadata' }
+              ]
+            }
           }
         }];
       } catch (err) {
@@ -655,7 +759,7 @@
       for (const h of filtered) {
         const statusColor = h.status === 'complete' ? 'var(--green)' : h.status === 'processing' ? 'var(--yellow)' : '#818cf8';
         const statusLabel = h.status === 'complete' ? '✓ Complete' : h.status === 'processing' ? '⏳ Processing…' : '↗ Ready for GitHub Upload';
-        html += `<div class="card" data-item-id="${escapeHtml(h.id)}"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderCapabilityBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
+        html += `<div class="card" data-item-id="${escapeHtml(h.id)}"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderCapabilityBlock(h)}${renderCompareBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
 
       }
       container.innerHTML = html;
