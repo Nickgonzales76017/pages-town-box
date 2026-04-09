@@ -538,6 +538,19 @@
 
     async function loadDemoItems() {
       try {
+        const multiDemo = await fetchText('demos/town-box/demo-items.json');
+        if (multiDemo) {
+          const parsed = JSON.parse(multiDemo);
+          if (Array.isArray(parsed) && parsed.length) {
+            demoItems = parsed.map(item => ({
+              time: item.time === 'Demo dataset' ? 'Demo dataset' : item.time,
+              status: item.status || 'complete',
+              demo: true,
+              ...item
+            }));
+            return;
+          }
+        }
         const rawArtifact = await fetchText('artifact.json');
         if (!rawArtifact) return;
         const artifact = JSON.parse(rawArtifact);
