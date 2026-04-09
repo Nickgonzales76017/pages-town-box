@@ -39,6 +39,14 @@
     .card-meta { font-size: .8rem; color: var(--dim); margin-bottom: .75rem; display: flex; gap: 1rem; }
     .card-body { font-size: .9rem; line-height: 1.5; }
     .card-tags { margin-top: .75rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+    .capability-block { margin-top: 1rem; padding: 1rem; border: 1px solid #2a2a4a; border-radius: 8px; background: #101018; }
+    .capability-title { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; color: #818cf8; margin-bottom: .5rem; }
+    .operator-chain, .output-grid { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .operator-chip, .output-chip, .swap-chip { font-size: .75rem; padding: .3rem .55rem; border-radius: 999px; border: 1px solid var(--border); }
+    .operator-chip { background: #16162a; color: #d7dcff; }
+    .output-chip { background: #182417; color: #9ae6b4; }
+    .swap-chip { background: #241a12; color: #f6ad55; }
+    .capability-copy { font-size: .8rem; color: var(--dim); margin: .65rem 0; }
     .tag { font-size: .7rem; padding: 2px 8px; border-radius: 4px; background: #1a1a2e; color: var(--accent); }
     .tag-urgent { background: #3b1111; color: var(--red); }
     .preview { background: #0d0d1a; border: 1px solid #2a2a4a; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
@@ -210,6 +218,30 @@
       return (demoHidden ? [] : demoItems).concat(items);
     }
 
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>\"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[ch]));
+    }
+
+    function renderCapabilityBlock(item) {
+      if (!item || !Array.isArray(item.modules) || !item.modules.length) return '';
+      const chain = item.modules.map(step => `<span class="operator-chip">${escapeHtml(step)}</span>`).join('');
+      const outputs = (item.outputs || []).map(step => `<span class="output-chip">${escapeHtml(step)}</span>`).join('');
+      const swaps = (item.optionalModules || []).map(step => `<span class="swap-chip">${escapeHtml(step)}</span>`).join('');
+      return `<div class="capability-block">
+        <div class="capability-title">Composed With Bonfyre</div>
+        <div class="operator-chain">${chain}</div>
+        <p class="capability-copy">${escapeHtml(item.compositionNote || '')}</p>
+        <div class="output-grid">${outputs}</div>
+        ${swaps ? `<p class="capability-copy">Easy swap-ins: ${swaps}</p>` : ''}
+      </div>`;
+    }
+
     function updateDemoButton() {
       const btn = document.getElementById('toggleDemoBtn');
       btn.textContent = demoHidden ? 'Show Demo Data' : 'Clear Demo Data';
@@ -260,7 +292,11 @@
           brief: summary,
           tags: tags,
           flagged: !!meta.flagged,
-          demo: true
+          demo: true,
+          modules: ['bonfyre-transcribe', 'bonfyre-brief', 'bonfyre-tag', 'bonfyre-embed', 'bonfyre-index', 'bonfyre-render', 'bonfyre-emit'],
+          optionalModules: ['bonfyre-query', 'bonfyre-graph', 'bonfyre-distribute'],
+          outputs: ['civic summary card', 'searchable record', 'vector memory', 'public issue trail'],
+          compositionNote: 'Town in a Box turns one civic input into an indexed memory entry, an embedding-backed search surface, and a renderable public status object. bonfyre-query and bonfyre-graph can sit on top of the same artifact set without changing the intake flow.'
         }];
       } catch (err) {
         console.warn('[bonfyre] demo load failed:', err.message);
@@ -473,7 +509,7 @@
       for (const h of filtered) {
         const statusColor = h.status === 'complete' ? 'var(--green)' : h.status === 'processing' ? 'var(--yellow)' : '#818cf8';
         const statusLabel = h.status === 'complete' ? '✓ Complete' : h.status === 'processing' ? '⏳ Processing…' : '↗ Ready for GitHub Upload';
-        html += `<div class="card"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div><div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
+        html += `<div class="card"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderCapabilityBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
 
       }
       container.innerHTML = html;
