@@ -20,8 +20,10 @@ while IFS= read -r f; do
       bonfyre-transcribe "artifacts/${base}.prep.json" --out "artifacts/${base}.transcript.json"
       bonfyre-brief "artifacts/${base}.transcript.json" --out "artifacts/${base}.brief.json"
       bonfyre-tag "artifacts/${base}.brief.json" --out "artifacts/${base}.tags.json"
-      bonfyre-embed "artifacts/${base}.tags.json" --out "artifacts/${base}.embed.json"
-      bonfyre-vec "artifacts/${base}.embed.json" --insert-db "artifacts/civic.db"
+      if command -v bonfyre-embed >/dev/null 2>&1 && command -v bonfyre-vec >/dev/null 2>&1; then
+        bonfyre-embed "artifacts/${base}.tags.json" --out "artifacts/${base}.embed.json"
+        bonfyre-vec "artifacts/${base}.embed.json" --insert-db "artifacts/civic.db"
+      fi
       bonfyre-index "artifacts/${base}.tags.json" --db "artifacts/civic.db"
       if [ "$category" = "meetings" ]; then
         bonfyre-render "artifacts/${base}.brief.json" --template meeting --out "${DEPLOY_PATH}/meetings/${base}.html"
@@ -30,8 +32,10 @@ while IFS= read -r f; do
     json)
       bonfyre-brief "$f" --out "artifacts/${base}.brief.json"
       bonfyre-tag "artifacts/${base}.brief.json" --out "artifacts/${base}.tags.json"
-      bonfyre-embed "artifacts/${base}.tags.json" --out "artifacts/${base}.embed.json"
-      bonfyre-vec "artifacts/${base}.embed.json" --insert-db "artifacts/civic.db"
+      if command -v bonfyre-embed >/dev/null 2>&1 && command -v bonfyre-vec >/dev/null 2>&1; then
+        bonfyre-embed "artifacts/${base}.tags.json" --out "artifacts/${base}.embed.json"
+        bonfyre-vec "artifacts/${base}.embed.json" --insert-db "artifacts/civic.db"
+      fi
       bonfyre-index "artifacts/${base}.tags.json" --db "artifacts/civic.db"
       if [ "$category" = "meetings" ]; then
         bonfyre-render "artifacts/${base}.brief.json" --template meeting --out "${DEPLOY_PATH}/meetings/${base}.html"

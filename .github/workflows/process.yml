@@ -25,3 +25,4 @@ jobs:
       artifact_name: pages-town-box-runtime
       bonfyre_repo: Nickgonzales76017/bonfyre-oss
       bonfyre_ref: main
+      bonfyre_targets: BonfyreBrief BonfyreTag BonfyreIndex BonfyreRender BonfyreEmit
