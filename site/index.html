@@ -266,6 +266,8 @@
       nodes.panel.style.display = 'block';
       nodes.content.textContent = String(text || '');
       nodes.actions.innerHTML = '';
+      let search = nodes.panel.querySelector('.bonfyre-demo-search');
+      if (search) search.style.display = 'none';
       if (link && link.href) {
         const anchor = document.createElement('a');
         anchor.className = 'btn btn-ghost';
@@ -275,6 +277,92 @@
         anchor.textContent = link.label || 'Open artifact';
         nodes.actions.appendChild(anchor);
       }
+      return true;
+    }
+
+    async function openArtifactInPreview(note, link) {
+      if (!link || !link.href) return false;
+      const raw = await fetchText(link.href);
+      if (!raw) return setPreviewState(note || 'This output is available for this demo item.', link);
+      let body = raw;
+      if (/\.json($|\?)/.test(link.href)) {
+        try { body = JSON.stringify(JSON.parse(raw), null, 2); } catch (_) {}
+      }
+      return setPreviewState((note ? note + '\n\n' : '') + body, link);
+    }
+
+    function ensureSearchNodes() {
+      const nodes = ensurePreviewNodes();
+      if (!nodes) return null;
+      let search = nodes.panel.querySelector('.bonfyre-demo-search');
+      if (!search) {
+        search = document.createElement('div');
+        search.className = 'bonfyre-demo-search';
+        search.style.display = 'none';
+        search.style.marginTop = '.85rem';
+        search.innerHTML = `
+          <div class="bonfyre-demo-search-copy" style="font-size:.78rem;color:var(--dim);margin-bottom:.55rem;line-height:1.45;"></div>
+          <input class="bonfyre-demo-search-input" type="search" placeholder="Search this town demo" style="width:100%;padding:.55rem .65rem;border-radius:6px;border:1px solid var(--border);background:#0f1117;color:var(--fg);margin-bottom:.65rem;">
+          <div class="bonfyre-demo-search-results" style="display:grid;gap:.45rem;"></div>
+        `;
+        nodes.actions.insertAdjacentElement('afterend', search);
+      }
+      return {
+        ...nodes,
+        searchRoot: search,
+        searchCopy: search.querySelector('.bonfyre-demo-search-copy'),
+        searchInput: search.querySelector('.bonfyre-demo-search-input'),
+        searchResults: search.querySelector('.bonfyre-demo-search-results')
+      };
+    }
+
+    function scoreDemoItem(item, query) {
+      const hay = [item.file, item.brief, (item.tags || []).join(' '), item.searchSummary, item.whyItMatters].join(' ').toLowerCase();
+      if (!query) return 1;
+      if (!hay.includes(query)) return 0;
+      let score = 1;
+      if (String(item.file || '').toLowerCase().includes(query)) score += 3;
+      if ((item.tags || []).join(' ').toLowerCase().includes(query)) score += 2;
+      if (String(item.brief || '').toLowerCase().includes(query)) score += 1;
+      return score;
+    }
+
+    function renderSearchResults(query) {
+      const ranked = getVisibleItems()
+        .map(item => ({ item, score: scoreDemoItem(item, query) }))
+        .filter(entry => entry.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 6);
+      if (!ranked.length) return `<div style="padding:.65rem .75rem;border:1px solid var(--border);border-radius:8px;background:#0d131d;color:var(--dim);font-size:.76rem;">No matching civic records yet.</div>`;
+      return ranked.map(({ item }) => `
+        <button type="button" data-demo-open="${escapeHtml(item.id)}" style="width:100%;text-align:left;padding:.65rem .75rem;border-radius:8px;border:1px solid var(--border);background:#0d131d;color:var(--fg);cursor:pointer;">
+          <strong style="display:block;color:var(--accent);margin-bottom:.2rem;font-size:.8rem;">${escapeHtml(item.file)}</strong>
+          <span style="display:block;font-size:.76rem;line-height:1.4;margin-bottom:.2rem;">${escapeHtml(item.searchSummary || item.brief || '')}</span>
+          <em style="display:block;font-size:.72rem;color:var(--dim);font-style:normal;">${escapeHtml((item.tags || []).slice(0, 3).join(' · '))}</em>
+        </button>
+      `).join('');
+    }
+
+    function openSearchExperience(item, label) {
+      const nodes = ensureSearchNodes();
+      if (!nodes) return false;
+      nodes.panel.style.display = 'block';
+      nodes.content.textContent = String((item.outputNotes && item.outputNotes[label]) || 'Search across the town demo to see why this output matters.');
+      nodes.actions.innerHTML = '';
+      nodes.searchRoot.style.display = 'block';
+      nodes.searchCopy.textContent = item.searchIntro || 'Multiple civic records make search, reuse, and memory visible inside the app instead of sending you to raw files.';
+      nodes.searchInput.value = '';
+      nodes.searchResults.innerHTML = renderSearchResults('');
+      nodes.searchInput.oninput = function() {
+        nodes.searchResults.innerHTML = renderSearchResults(String(nodes.searchInput.value || '').trim().toLowerCase());
+      };
+      nodes.searchResults.onclick = function(event) {
+        const button = event.target.closest('[data-demo-open]');
+        if (!button) return;
+        const target = getVisibleItems().find(entry => String(entry.id) === String(button.dataset.demoOpen));
+        if (!target) return;
+        setPreviewState((target.whyItMatters ? target.whyItMatters + '\n\n' : '') + String(target.brief || ''));
+      };
       return true;
     }
 
@@ -310,7 +398,7 @@
           const action = getMappedAction(item, 'moduleActions', label);
           const note = item && item.moduleNotes && (item.moduleNotes[label] || item.moduleNotes[normalizeToken(label)]);
           if (action && action.href) {
-            setPreviewState(action.note || note || (label + ' is available for this demo item.'), action);
+            openArtifactInPreview(action.note || note || (label + ' is available for this demo item.'), action);
             return;
           }
           if (note) {
@@ -328,12 +416,16 @@
           const item = card ? getVisibleItems().find(entry => String(entry.id) === String(card.dataset.itemId)) : null;
           const label = outputChip.textContent.trim();
           const link = getMappedAction(item, 'outputLinks', label);
+          if (item && Array.isArray(item.searchOutputs) && item.searchOutputs.includes(label)) {
+            openSearchExperience(item, label);
+            return;
+          }
           if (item && item.outputNotes && item.outputNotes[label]) {
-            setPreviewState(item.outputNotes[label], link);
+            openArtifactInPreview(item.outputNotes[label], link);
             return;
           }
           if (link) {
-            setPreviewState(label + ' is available for this demo item.', link);
+            openArtifactInPreview(label + ' is available for this demo item.', link);
             return;
           }
         }
@@ -372,6 +464,7 @@
         <div class="result-list">${quickWins.map(entry => `
           <div class="result-item"><strong>${escapeHtml(entry.title)}</strong>${escapeHtml(entry.copy)}</div>
         `).join('')}</div>
+        ${Array.isArray(item.outputs) && item.outputs.length ? `<div class="output-grid">${item.outputs.map(step => `<span class="output-chip">${escapeHtml(step)}</span>`).join('')}</div>` : ''}
         ${renderResultLinks(links)}
       </div>`;
     }
@@ -419,7 +512,7 @@
         const tags = Array.isArray(meta.tags) && meta.tags.length ? meta.tags : [meta.category || transcript.category || 'meetings'];
 
         demoItems = [{
-          id: 'demo-town-box',
+          id: 'demo-town-box-drainage',
           file: title,
           time: new Date(time).toLocaleString(),
           status: meta.status || 'complete',
@@ -427,31 +520,11 @@
           tags: tags,
           flagged: !!meta.flagged,
           demo: true,
-          modules: ['bonfyre-transcribe', 'bonfyre-brief', 'bonfyre-tag', 'bonfyre-embed', 'bonfyre-index', 'bonfyre-render', 'bonfyre-emit'],
-          optionalModules: ['bonfyre-query', 'bonfyre-graph', 'bonfyre-distribute'],
           outputs: ['civic summary card', 'searchable record', 'vector memory', 'public issue trail'],
-          compositionNote: 'Town in a Box turns one civic input into an indexed memory entry, an embedding-backed search surface, and a renderable public status object. bonfyre-query and bonfyre-graph can sit on top of the same artifact set without changing the intake flow.',
-          moduleNotes: {
-            'bonfyre-transcribe': 'bonfyre-transcribe turns the civic source into the transcript atom that the rest of the flow reuses.',
-            'bonfyre-brief': 'bonfyre-brief creates the working summary object for the board and for downstream render steps.',
-            'bonfyre-tag': 'bonfyre-tag adds the operational labels that make the record filterable as a civic status object.',
-            'bonfyre-embed': 'bonfyre-embed creates the vector memory surface so this same record can participate in semantic retrieval.',
-            'bonfyre-index': 'bonfyre-index gives the civic board a queryable memory layout without changing the intake artifact.',
-            'bonfyre-render': 'bonfyre-render turns the structured artifact into the civic card and public surfaces.',
-            'bonfyre-emit': 'bonfyre-emit packages the result for publishable outputs.',
-            'bonfyre-query': 'bonfyre-query can sit on top of the same civic artifacts to support user-facing retrieval later.',
-            'bonfyre-graph': 'bonfyre-graph can expose relationships across the same civic artifact set without re-ingesting.',
-            'bonfyre-distribute': 'bonfyre-distribute is the next step if the same civic object needs to fan out to other channels.'
-          },
-          moduleActions: {
-            'bonfyre-transcribe': { href: 'demos/town-box/transcript.json', label: 'Open transcript atom' },
-            'bonfyre-brief': { href: 'demos/town-box/brief.md', label: 'Open brief output' },
-            'bonfyre-tag': { href: 'demos/town-box/brief-meta.json', label: 'Open tagging metadata' },
-            'bonfyre-embed': { href: 'artifact.json', label: 'Open published artifact manifest' },
-            'bonfyre-index': { href: 'artifact.json', label: 'Open published artifact manifest' },
-            'bonfyre-render': { href: 'demos/town-box/brief.md', label: 'Open rendered civic summary' },
-            'bonfyre-emit': { href: 'artifact.json', label: 'Open emitted artifact manifest' }
-          },
+          searchSummary: 'Drainage work, repair window, resident hotline clarity.',
+          whyItMatters: 'With more than one civic record in play, the searchable record stops being a raw file and becomes a way to connect related town issues over time.',
+          searchIntro: 'Search the seeded town records to see how one issue can be related to meeting updates, hotline complaints, and public status objects.',
+          searchOutputs: ['searchable record', 'vector memory'],
           outputNotes: {
             'civic summary card': 'This is the user-facing civic record Bonfyre renders from the shared brief and metadata.',
             'searchable record': 'The same artifact set is already shaped so it can be searched or filtered without reprocessing.',
@@ -465,42 +538,36 @@
             'public issue trail': { href: 'demos/town-box/brief-meta.json', label: 'Open civic metadata' }
           },
           compare: {
-            title: 'With And Without The New Layer',
-            note: 'The floor already yields a real civic record. The orchestration layer only stays when it expands the same artifact into search and memory surfaces that improve the town system instead of just decorating it.',
-            floor: {
-              kicker: 'Deterministic Floor',
-              title: 'Civic brief and public status object',
-              copy: 'This is the always-on path: transcript atom, brief extraction, and metadata emit. It gives the city a readable status artifact even before search and retrieval layers appear.',
-              modules: ['bonfyre-transcribe', 'bonfyre-brief', 'bonfyre-tag'],
-              metrics: {
-                'Best for': 'Fast public record updates',
-                'You get': 'A readable civic summary and status object',
-                'Good when': 'You need a clean public-facing record first'
-              },
-              outputs: ['civic summary card', 'public issue trail'],
-              links: [
-                { href: 'demos/town-box/brief.md', label: 'Open civic summary' },
-                { href: 'demos/town-box/brief-meta.json', label: 'Open civic metadata' }
-              ]
-            },
-            layered: {
-              kicker: 'Orchestrated Layer',
-              title: 'Same civic input, now searchable and reusable',
-              copy: 'When the layer earns its place, the same civic record becomes indexed memory and a retrieval-ready artifact. That keeps the town system thin while making every record more reusable later.',
-              modules: ['bonfyre-brief', 'bonfyre-tag', 'bonfyre-embed', 'bonfyre-index', 'bonfyre-emit'],
-              metrics: {
-                'Adds': 'Search and memory surfaces',
-                'Why it matters': 'The same civic record becomes reusable across time',
-                'Keeps': 'One shared town artifact'
-              },
-              outputs: ['civic summary card', 'searchable record', 'vector memory', 'public issue trail'],
-              links: [
-                { href: 'artifact.json', label: 'Open artifact manifest' },
-                { href: 'demos/town-box/brief.md', label: 'Open civic summary' },
-                { href: 'demos/town-box/brief-meta.json', label: 'Open civic metadata' }
-              ]
-            }
+            note: 'Start with one clear civic summary, then search across related records without leaving the app.',
+            floor: { title: 'A readable civic summary and status object' },
+            layered: { title: 'The same issue becomes searchable across the town record' }
           }
+        }, {
+          id: 'demo-town-box-hotline',
+          file: 'Resident Hotline Cluster — Drainage Follow-up',
+          time: 'Demo dataset',
+          status: 'complete',
+          brief: 'Residents called in about blocked drains, unclear detour signage, and repeated confusion about where updates would be posted during the repair window.',
+          tags: ['issues', 'hotline'],
+          flagged: true,
+          demo: true,
+          outputs: ['searchable record', 'vector memory', 'public issue trail'],
+          searchSummary: 'Blocked drains, detour signage, unclear updates, hotline cluster.',
+          whyItMatters: 'This record matters because it connects resident pain to the official meeting record. Search should surface that link immediately.',
+          searchOutputs: ['searchable record', 'vector memory']
+        }, {
+          id: 'demo-town-box-meeting',
+          file: 'Public Works Committee Update — East Drainage Corridor',
+          time: 'Demo dataset',
+          status: 'complete',
+          brief: 'Committee notes confirm the repair calendar, identify the contractor start date, and request a simpler public status page so hotline staff and residents cite the same update source.',
+          tags: ['meetings'],
+          flagged: false,
+          demo: true,
+          outputs: ['civic summary card', 'searchable record'],
+          searchSummary: 'Repair calendar, contractor start date, public status page request.',
+          whyItMatters: 'With multiple town records present, one committee update becomes part of a searchable civic memory instead of one more isolated note.',
+          searchOutputs: ['searchable record']
         }];
       } catch (err) {
         console.warn('[bonfyre] demo load failed:', err.message);
