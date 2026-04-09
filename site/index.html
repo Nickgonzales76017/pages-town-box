@@ -56,6 +56,11 @@
     .result-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
     .result-link { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .7rem; border-radius: 6px; border: 1px solid #38465d; background: rgba(255,255,255,.02); color: var(--fg); text-decoration: none; font-size: .78rem; font-weight: 600; }
     .result-link:hover { border-color: var(--accent); color: var(--accent); }
+    .source-block { margin-top: 1rem; padding: .9rem 1rem; border: 1px solid #223047; border-radius: 10px; background: #0b111a; }
+    .source-title { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #93c5fd; margin-bottom: .4rem; }
+    .source-copy { font-size: .82rem; color: var(--fg); line-height: 1.5; margin-bottom: .65rem; }
+    .source-meta { font-size: .74rem; color: var(--dim); margin-bottom: .6rem; }
+    .source-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
     .dataset-overview { margin-bottom: 1rem; padding: 1rem; border: 1px solid #273246; border-radius: 12px; background: linear-gradient(180deg,#0f1520,#0b1016); }
     .dataset-head { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:flex-start; margin-bottom:.75rem; }
     .dataset-head h3 { font-size: 1rem; color: #f8fafc; margin-bottom: .2rem; }
@@ -104,7 +109,7 @@
       <h1>Town in a Box</h1>
       <span class="badge badge-live" id="statusBadge">LIVE</span>
       <div class="header-right">
-        <button class="btn btn-ghost" id="toggleDemoBtn" type="button">Clear Demo Data</button>
+        <button class="btn btn-ghost" id="toggleDemoBtn" type="button">Hide Corpus</button>
         <button class="btn btn-ghost" onclick="toggleConfig()">Settings</button>
       </div>
     </header>
@@ -583,6 +588,35 @@
       `).join('')}</div>`;
     }
 
+    function getSourceLinks(item) {
+      if (!item) return [];
+      const links = [];
+      if (item.sourceUrl) {
+        links.push({ href: item.sourceUrl, label: item.sourceLabel || 'Open source' });
+      }
+      if (Array.isArray(item.sourceLinks)) {
+        item.sourceLinks.forEach(link => {
+          if (link && link.href) links.push(link);
+        });
+      }
+      return links.filter((link, index, arr) => link && arr.findIndex(other => other && other.href === link.href && (other.label || '') === (link.label || '')) === index);
+    }
+
+    function renderSourceBlock(item) {
+      const links = getSourceLinks(item);
+      if (!links.length) return '';
+      const meta = [item.sourceTitle, item.publisher, item.license].filter(Boolean).join(' · ');
+      const copy = item.sourceCopy || 'Track this record back to the source Bonfyre structured so the value is visible end to end.';
+      return `<div class="source-block">
+        <div class="source-title">Source</div>
+        <div class="source-copy">${escapeHtml(copy)}</div>
+        ${meta ? `<div class="source-meta">${escapeHtml(meta)}</div>` : ''}
+        <div class="source-actions">${links.map(link => `
+          <a class="result-link" href="${escapeHtml(link.href || '#')}" target="_blank" rel="noreferrer noopener">${escapeHtml(link.label || 'Open source')}</a>
+        `).join('')}</div>
+      </div>`;
+    }
+
     function renderResultBlock(item) {
       if (!item) return '';
       const quickWins = [];
@@ -597,6 +631,7 @@
       return `<div class="result-block">
         <div class="result-title">What This Gives You</div>
         <p class="result-copy">${escapeHtml(item.compare?.note || item.compositionNote || 'Open the demo outputs, then bring your own civic file when you want to replace the reference record.')}</p>
+        ${renderSourceBlock(item)}
         <div class="result-list">${quickWins.map(entry => `
           <div class="result-item"><strong>${escapeHtml(entry.title)}</strong>${escapeHtml(entry.copy)}</div>
         `).join('')}</div>
@@ -607,7 +642,7 @@
 
     function updateDemoButton() {
       const btn = document.getElementById('toggleDemoBtn');
-      btn.textContent = demoHidden ? 'Show Demo Data' : 'Clear Demo Data';
+      btn.textContent = demoHidden ? 'Show Corpus' : 'Hide Corpus';
     }
 
     function toggleDemoData() {
@@ -631,6 +666,11 @@
           const parsed = JSON.parse(multiDemo);
           if (Array.isArray(parsed) && parsed.length) {
             demoItems = parsed.map(item => ({
+              sourceUrl: item.sourceUrl || 'demos/town-box/transcript.json',
+              sourceLabel: item.sourceLabel || 'Open source transcript',
+              sourceTitle: item.sourceTitle || 'Published town transcript',
+              publisher: item.publisher || 'Town in a Box reference corpus',
+              sourceCopy: item.sourceCopy || 'This reference record is tied back to the published transcript Bonfyre structured into summary, search, and public trail surfaces.',
               time: item.time === 'Reference corpus' ? 'Reference corpus' : item.time,
               status: item.status || 'complete',
               demo: true,
@@ -672,6 +712,11 @@
           outputs: ['civic summary card', 'searchable record', 'vector memory', 'public issue trail'],
           searchSummary: 'Drainage work, repair window, resident hotline clarity.',
           whyItMatters: 'With more than one civic record in play, the searchable record stops being a raw file and becomes a way to connect related town issues over time.',
+          sourceUrl: atom ? atom.path : 'demos/town-box/transcript.json',
+          sourceLabel: 'Open source transcript',
+          sourceTitle: 'Published town transcript',
+          publisher: 'Town in a Box published artifact',
+          sourceCopy: 'Start from the source transcript, then compare how Bonfyre turns it into a civic summary, a searchable record, and a public issue trail.',
           searchIntro: 'Search the reference town records to see how one issue can be related to meeting updates, hotline complaints, and public status objects.',
           searchOutputs: ['searchable record', 'vector memory'],
           outputNotes: {
@@ -938,7 +983,7 @@
       for (const h of limited) {
         const statusColor = h.status === 'complete' ? 'var(--green)' : h.status === 'processing' ? 'var(--yellow)' : '#818cf8';
         const statusLabel = h.status === 'complete' ? '✓ Complete' : h.status === 'processing' ? '⏳ Processing…' : '↗ Ready for GitHub Upload';
-        html += `<div class="card" data-item-id="${escapeHtml(h.id)}"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#f59e0b;margin-left:.5rem;">DEMO</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderResultBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
+        html += `<div class="card" data-item-id="${escapeHtml(h.id)}"><h3>🏛 ${h.file}${h.demo ? ' <span class="badge" style="background:#1f2937;color:#93c5fd;margin-left:.5rem;">REFERENCE</span>' : ''}</h3><div class="card-meta"><span>${h.time}</span><span style="color:${statusColor}">${statusLabel}</span></div><div class="card-body">${h.brief || "<em style=\"color:var(--dim)\">Processing civic record…</em>"}</div>${renderResultBlock(h)}<div class="card-tags">${h.flagged ? "<span class=\"tag tag-urgent\">URGENT</span>" : ""}${(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>`;
 
       }
       container.innerHTML = html;
