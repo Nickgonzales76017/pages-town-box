@@ -138,7 +138,8 @@
       btn.append(n,text);btn.setAttribute('aria-current',i===position?'true':'false');
       btn.addEventListener('click',()=>selectFile(row.file));li.append(btn);root.append(li);
     }
-    const active=root.querySelector('.current');if(active)active.scrollIntoView({block:'nearest'});
+    const active=root.querySelector('.current');
+    if(active&&root.parentElement)root.parentElement.scrollTop=Math.max(0,active.offsetTop-root.parentElement.offsetTop-40);
   }
   function writeSheet(row) {
     const el=$('sourceSheet');el.replaceChildren();if(!row)return;
