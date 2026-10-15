@@ -196,6 +196,24 @@
   function renderBrief() {
     const row=byFile(chosen),target=$('briefPreview');
     if(!row){target.textContent='Select a source record to compose a review brief.';return;}
+    // Exact-source handoff: the next application receives an observed source
+    // identity and explicit review questions, never an authorized effect.
+    const handoff=new URL('https://nickgonzales76017.github.io/pages-procurement-memory/brief-studio/');
+    const main=row.agenda||row.chapter;
+    const statement=(row.agenda?.title||row.chapter?.title||row.file)+
+      '. Dallas Council September 23, 2026, exact file '+row.file+'. '+
+      (row.chapter?'Indexed chapter at '+readableTime(chapterSeconds(row))+'; video '+row.chapter.href+'. ':'No chapter matched in this retained snapshot. ')+
+      'Source state: '+sourceMode+'. Observation receipt '+main.receipt+'.';
+    handoff.searchParams.set('handoff','civic');
+    handoff.searchParams.set('subject',row.file);
+    handoff.searchParams.set('title',(row.agenda?.title||row.chapter?.title||row.file).slice(0,160));
+    handoff.searchParams.set('source',main.href);
+    handoff.searchParams.set('assertion',statement.slice(0,1200));
+    const requested=proofRequests.filter(q=>q.file===row.file).slice(0,4);
+    if(requested.length)handoff.searchParams.set('proof',requested.map(q=>q.kind+':'+q.method).join(','));
+    const reviewed=reviews.get(row.file);
+    if(reviewed?.note)handoff.searchParams.set('note',reviewed.note.slice(0,900));
+    $('handoffStudio').href=handoff.href;
     const recipient=$('briefAudience').value||'Research review';
     const r=reviews.get(chosen);
     const includes={citations:$('includeCitations').checked,unresolved:$('includeGaps').checked,requests:$('includeProof').checked};
