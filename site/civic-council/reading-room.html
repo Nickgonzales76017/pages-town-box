@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="An immersive, source-bound council reading room. Explore Dallas agenda documents, open the publisher's media index, curate a reading and compose a referenced briefing.">
+<link rel="stylesheet" href="./reading.css">
+<script src="./reading.js" defer></script>
+<meta name="theme-color" content="#0d1614">
+<title>Council Reading Room — Town in a Box · Bonfÿre</title>
+</head>
+<body>
+<a class="skip" href="#paths">Skip to the documents</a>
+<div class="bar">
+  <a class="brand" href="../"><i>T</i><span>TOWN IN A BOX<small>A BONFŸRE EXPERIENCE</small></span></a>
+  <nav aria-label="Reading room">
+    <a href="#paths">Choose a thread</a>
+    <a href="#reader">Read the record</a>
+    <a href="#folio">Your folio</a>
+    <a href="#compose">Compose</a>
+  </nav>
+  <button class="top-button" type="button" id="openLookup" aria-haspopup="dialog" aria-controls="lookup">Find a file <span aria-hidden="true">⌘ K</span></button>
+</div>
+<div class="issue"><span>ISSUE 01 <strong>/ DALLAS COUNCIL</strong></span><span>THE PUBLIC RECORD · 23 SEPTEMBER 2026 · SOURCE-BOUND READING</span></div>
+<header class="opening">
+  <div class="opening-copy">
+    <div class="overline">THE CITY, AS RECORDED</div>
+    <h1>Follow<br>the <em>record.</em></h1>
+    <p>An agenda isn't a story, and a video index isn't a vote. Open the original material, find where two official sources meet, make your own reading, and take only what you can support.</p>
+    <div class="opening-actions">
+      <a class="link-solid" href="#paths">Choose a line of inquiry <span>↗</span></a>
+      <a class="link-quiet" href="https://dallastx.new.swagit.com/videos/402001" target="_blank" rel="noopener noreferrer">Visit the publisher's meeting ↗</a>
+    </div>
+  </div>
+  <div class="opening-art" aria-hidden="true">
+    <div class="colophon">09 / 23 / 26<br>COUNCIL CHAMBERS<br>DALLAS, TEXAS</div>
+    <div class="numeral">26</div>
+    <div class="caption">A shared file number brings the agenda and video index together. Interpretation still belongs to the reader.</div>
+  </div>
+</header>
+<div class="seal">
+  <span><b>THE MATERIAL</b> &nbsp; 70 published agenda items · 21 indexed chapters · 21 exact file-number joins</span>
+  <span class="caution">The publisher's chapter deep links may fail. The complete official meeting page is the playback entry.</span>
+</div>
+
+<main>
+<section id="paths" class="paths" aria-labelledby="pathHeading">
+  <span class="chapter-no">I. START WITH A QUESTION</span>
+  <h2 id="pathHeading">What are you <em>looking for?</em></h2>
+  <p>Each path is a doorway into the actual council agenda—not an automatic finding. Choose a question, then follow documents and recording references in their own context. You can change your path without losing your collected reading.</p>
+  <div id="pathButtons" class="path-list" aria-label="Suggested lines of inquiry">
+    <p class="quiet">Reading the council source…</p>
+  </div>
+  <div class="underpaths">
+    <button class="text-button" id="openAll" type="button">Read the full official agenda index ↗</button>
+    <span class="mono quiet" id="pathIntro">The source is loading.</span>
+  </div>
+</section>
+
+<section id="reader" class="reader" aria-labelledby="documentHeading">
+  <div class="reading-head">
+    <div>II. THE READING ROOM &nbsp; / &nbsp; <b id="readerPathName">Choose a line of inquiry</b></div>
+    <div><span id="chapterPosition">—</span> &nbsp;&nbsp; · &nbsp; <button type="button" id="readerFind">Find another source ↗</button></div>
+  </div>
+  <div class="reader-grid">
+    <aside class="contents">
+      <div class="contents-sticky">
+        <div class="small-title">CONTENTS OF THIS READING</div>
+        <button class="look-up" id="contentsSearch" type="button">⌕ &nbsp; Jump to a docket number</button>
+        <div class="contents-scroll"><ol id="chapterContents" class="contents-list" aria-label="Items in the selected reading"></ol></div>
+        <div class="contents-footer">Each entry is a published source reference. A missing video index is not proof that an item went undiscussed.</div>
+      </div>
+    </aside>
+    <article class="passage" aria-labelledby="documentHeading">
+      <div class="passage-top"><span id="readingLabel">ORIGINAL AGENDA · SOURCE RETAINED</span><a id="openMeetingTop" href="https://dallastx.new.swagit.com/videos/402001" target="_blank" rel="noopener noreferrer">Publisher's meeting ↗</a></div>
+      <div id="fileNum" class="folio-id">DALLAS / ORIGINAL SOURCE</div>
+      <h2 id="documentHeading">The document is the interface.</h2>
+      <p id="sourceExplainer" class="passage-explain">Choose a source to read it in context, compare its official indexes and gather material for an attributable brief.</p>
+      <div class="source-switch" id="sourceTabButtons" aria-label="Source reading">
+        <button type="button" data-tab="agenda" class="selected">01 · Agenda document</button>
+        <button type="button" data-tab="media">02 · Recording index</button>
+        <button type="button" data-tab="provenance">03 · Source lineage</button>
+      </div>
+      <div id="sourceSheet" class="source-sheet" aria-live="polite">
+        <div class="source-eyebrow">OFFICIAL TEXT · AS RETAINED</div>
+        <h3>Select a council file to begin reading.</h3>
+      </div>
+      <div class="theater" id="theater" aria-label="Recording index">
+        <div class="theater-head"><span>OFFICIAL MEETING · SEP 23, 2026</span><span class="live" id="filmStatus">SOURCE INDEX</span></div>
+        <div class="theater-body"><div class="theater-time" id="filmTime">—</div><p id="filmLabel">An indexed timestamp will appear here if one is retained.</p></div>
+        <div class="theater-links">
+          <a id="filmLink" href="https://dallastx.new.swagit.com/videos/402001" target="_blank" rel="noopener noreferrer">Open full meeting and publisher transcript ↗</a>
+          <span class="sub">Source-link only. No media copied or assumed playable.</span>
+        </div>
+      </div>
+      <div class="research-gestures" aria-label="Curate this source">
+        <button type="button" id="keepButton">＋ Keep in reading</button>
+        <button type="button" id="questionButton" class="question">? Question / investigate</button>
+        <button type="button" id="skipButton">− Leave out</button>
+        <span class="note" id="activeDecision">NOT YET CURATED</span>
+      </div>
+      <div id="questionPane" class="inline-question">
+        <label for="questionInput">Your question about this exact source</label>
+        <textarea id="questionInput" maxlength="900" placeholder="Which claim, timestamp, record or authority still needs checking?"></textarea>
+        <button class="text-button" id="saveQuestion" type="button">Keep the question with this source ↗</button>
+      </div>
+      <div class="page-turn">
+        <button type="button" id="prevButton">← Previous</button>
+        <div class="progress"><span id="progressBar"></span></div>
+        <button type="button" id="nextButton">Next →</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section id="folio" class="folio" aria-labelledby="folioHeading">
+  <div class="folio-heading"><span class="chapter-no">III. MAKE A READING</span>
+    <h2 id="folioHeading">The material <em>you chose.</em></h2>
+    <p>Collect the original sources that matter to your question. Reorder them to change the narrative, or keep a contested item visibly unresolved. This sequence is yours, not a change to the council record.</p></div>
+  <div class="folio-layout">
+    <div><div id="folioItems" class="folio-list" aria-live="polite"><p class="quiet">Nothing collected yet.</p></div></div>
+    <aside class="folio-helper"><h3>From source to position.</h3><p>Curating is an act, not a status update. Each place in the sequence retains its official file coordinate and provenance.</p>
+      <ul><li>Keep a document to include it.</li><li>Question a source to carry uncertainty with it.</li><li>Move items up or down to rewrite the sequence.</li><li>Produce a short brief or an annotated reading.</li></ul>
+      <p class="mono quiet" id="folioCount">0 sources held</p>
+      <button type="button" id="goCompose">Compose this reading →</button>
+      <button type="button" id="clearFolio">Clear my selection</button>
+    </aside>
+  </div>
+</section>
+
+<section id="compose" class="compose" aria-labelledby="composeHeading">
+  <span class="chapter-no">IV. THE PUBLISHABLE SHAPE — PRIVATE REVIEW ONLY</span>
+  <h2 id="composeHeading">Make the case.<br><em>Keep the evidence.</em></h2>
+  <p>The brief is a view over sources you've actually selected, not a new store of invented facts. Choose who is reading, what the piece is for, and which original material to disclose.</p>
+  <div class="compose-layout">
+    <div class="compose-controls">
+      <h3>Shape the reading</h3>
+      <label for="audienceSelect">Who will use this?</label>
+      <select id="audienceSelect"><option value="public">Resident / neighborhood</option><option value="research">Journalist / researcher</option><option value="operator">Institutional reviewer</option><option value="planning">Planning / housing analyst</option></select>
+      <label for="reportMode">How should it read?</label>
+      <select id="reportMode"><option value="essay">Editorial reading</option><option value="sources">Source dossier</option><option value="handoff">Verification handoff</option></select>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="includeCitations" checked> Full official links, retained source identities and receipts</label>
+        <label class="check"><input type="checkbox" id="includeGaps" checked> Explicitly show unresolved links and questions</label>
+      </div>
+      <button type="button" id="exportMarkdown">Save the reading (.md) ↗</button>
+      <button class="secondary" type="button" id="exportTSV">Export native review handoff (.tsv)</button>
+      <button class="secondary" type="button" id="copyBrief">Copy this reading</button>
+      <p>No automated publishing, field visits, provider quotes, authorized approvals, payment or council contact. A human admits any downstream action.</p>
+    </div>
+    <div class="paper" aria-live="polite">
+      <div class="paper-meta"><span>RESEARCH EDITION / 2026.09.23</span><span id="publicationLabel">UNCERTIFIED SOURCE READING</span></div>
+      <article id="composedArticle"><h3>Your sources will form the piece.</h3><p>Keep one original item to begin.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="comparison" class="comparison" aria-labelledby="comparisonHeading">
+  <span class="chapter-no">V. THE SOURCE CHANGES, THE READING RESPONDS</span>
+  <h2 id="comparisonHeading">What if the <em>record moves?</em></h2>
+  <p>Import a newer official observation cut to compare each file-number coordinate. Added agenda items, changed wording or missing video links remain visible for review rather than silently replacing the source.</p>
+  <div class="comparison-layout">
+    <div>
+      <label for="candidateFile">Compare another exported source cut (.tsv)</label>
+      <input type="file" id="candidateFile" accept=".tsv,.txt,text/tab-separated-values,text/plain">
+      <p class="quiet">Only exact Legistar / Swagit identities and retained receipt coordinates pass this local parser. A local file is never certified as an official observation by import.</p>
+      <div class="compare-actions"><button type="button" id="resetImport">Revert to the native published snapshot ↶</button></div>
+      <div id="changesSummary" class="mono quiet">No candidate has been imported.</div>
+      <div id="changeItems" class="compare-output"></div>
+    </div>
+    <aside><div class="chapter-no">SOURCE BEFORE THEORY</div><h3 style="font:42px var(--serif);margin:17px 0">A changed reference isn't a corrected fact.</h3>
+      <p>The comparison highlights additions, absences and altered assertions. Bonfÿre retains the original CMS evidence relationship until ForeignTwin and its owning publication system admit a new version.</p>
+      <p>To review exact reconciliation and build a one-file technical handoff, the original <a href="./desk.html">Detailed Source Desk ↗</a> remains accessible, using the same underlying source snapshot.</p></aside>
+  </div>
+</section>
+</main>
+<footer class="footer"><span>TOWN IN A BOX <span aria-hidden="true">×</span> BONFŸRE · PUBLIC RECORD READING</span><div><a href="../">Town board</a><a href="./desk.html">Detailed source desk</a><a href="https://docs.aurekai.work/">System guides</a><a href="https://aurekai-work-samples.pages.dev/">Aurekai Work Samples</a></div></footer>
+<div id="statusMessage" class="status" role="status" aria-live="polite">Preparing a source-bound reading…</div>
+<dialog id="lookup" aria-labelledby="lookupHeading"><button class="dialog-close" type="button" id="closeLookup">Close ✕</button><h2 id="lookupHeading">Find the original.</h2><p>Search all 70 official agenda files. Enter a docket number, a street, a person or source language, then jump straight to its reading.</p><input type="search" id="lookupInput" placeholder="26-2899A, groundwater, housing…" autocomplete="off"><div id="lookupResults" class="lookup-results"></div><p class="mono">⌘ K / Ctrl K opens · Esc closes · ↑ ↓ moves through results</p></dialog>
+</body>
+</html>
