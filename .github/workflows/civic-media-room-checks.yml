@@ -1,0 +1,28 @@
+name: Dallas Civic Media Room contracts
+on:
+  pull_request:
+    paths:
+      - 'site/civic-council/**'
+      - 'scripts/tests/civic-media-room.test.mjs'
+      - '.github/workflows/civic-media-room-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'site/civic-council/**'
+      - 'scripts/tests/civic-media-room.test.mjs'
+permissions:
+  contents: read
+jobs:
+  media:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript contracts
+        run: |
+          node --check site/civic-council/media-room/core.mjs
+          node --check site/civic-council/media-room/app.mjs
+      - name: Exercise actual retained Dallas source cut
+        run: node --test scripts/tests/civic-media-room.test.mjs

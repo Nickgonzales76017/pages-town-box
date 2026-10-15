@@ -1,0 +1,68 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark">
+<meta name="description" content="Dallas civic media production room: reconcile exact official agenda and chapter source identities, select native edit decisions, annotate, inspect and hand off without inventing a public release.">
+<title>Dallas Civic Media Room · Aurekai / Town in a Box</title><link rel="stylesheet" href="./studio.css"><script type="module" src="./app.mjs"></script></head>
+<body><div class="wrap"><nav class="topbar" aria-label="Workspaces"><a class="logo" href="../../"><span>T</span>TOWN IN A BOX <small> / AUREKAI</small></a>
+<div class="navigation"><a href="../">Council source workbench</a><a href="https://nickgonzales76017.github.io/pages-procurement-memory/brief-studio/">Brief Studio ↗</a><a href="https://aurekai-work-samples.pages.dev/">Work Samples ↗</a></div></nav>
+<header class="hero"><div><div class="eyebrow">Dallas / Meeting media / Native source edits</div><h1>Every chapter belongs<br>to <em>its original file.</em></h1><p>Follow exact Dallas Council agenda and chapter identities into the official recording. Select a source-clock edit, annotate the unanswered questions, compare a newer source cut, and prepare a private native clip decision. A video index is not permission to download or publish.</p>
+<div class="links"><a href="#editTable">Open the media table ↗</a><a class="alt" href="../">Original Council Workbench ↗</a></div></div>
+<div class="heroArt"><svg viewBox="0 0 500 245" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<g fill="none" stroke="#567c62"><path d="M28 75H472M28 135H472M28 197H472"/><path d="M48 32V217M130 32V217M212 32V217M294 32V217M376 32V217M458 32V217" stroke-dasharray="4 8"/></g>
+<g fill="#a7cfb5"><rect x="39" y="51" width="44" height="19" rx="3"/><rect x="95" y="51" width="44" height="19" rx="3"/><rect x="151" y="51" width="44" height="19" rx="3"/><rect x="207" y="51" width="44" height="19" rx="3"/><rect x="263" y="51" width="44" height="19" rx="3"/><rect x="319" y="51" width="44" height="19" rx="3"/></g>
+<g fill="#ddbe8b"><circle cx="59" cy="145" r="6"/><circle cx="115" cy="145" r="6"/><circle cx="171" cy="145" r="6"/><circle cx="227" cy="145" r="6"/><circle cx="339" cy="145" r="6"/></g>
+<g stroke="#9abea2" stroke-width="1.8" stroke-dasharray="5 5"><path d="M59 73V138M115 73V138M171 73V138M227 73V138M339 73V138"/></g>
+<rect x="53" y="180" width="260" height="27" fill="#284f39" stroke="#b7d5b9"/><path d="M68 194H297" stroke="#e4bd89" stroke-width="3"/><circle cx="181" cy="194" r="5" fill="#e4bd89"/>
+<text x="34" y="31" fill="#afcbbb" font-size="12" letter-spacing="2">LEGISTAR / AGENDAS</text>
+<text x="34" y="123" fill="#afcbbb" font-size="12" letter-spacing="2">SWAGIT / SOURCE CLOCK</text>
+<text x="329" y="198" fill="#d6e5c4" font-size="11">EXACT ID JOIN</text></svg></div></header>
+<div class="narrative"><p>Working from the retained BonfyreCMS September 23, 2026 public occurrence snapshot. Official Legistar agenda and Swagit chapter player links are treated as separate observations joined only by exact file number. Chapter timestamps represent player index positions, not verified speech or votes.</p><span id="statText" class="statsNote" aria-live="polite">Loading native source material…</span></div>
+<div class="progress" id="progress" aria-label="Media review stages"></div>
+<div class="desk" id="editTable">
+<section class="panel"><div class="eyebrow">01 / Source filmstrip</div><h2>Find the official file.</h2>
+<label>Search file number or agenda subject<input type="search" id="sourceSearch" placeholder="26-2255A, paving, engineering…" autocomplete="off"></label>
+<label>Show file identities<select id="statusFilter"><option value="all">Every retained file</option><option value="matched">Official video indexed</option><option value="agenda-only">Agenda only in this cut</option><option value="chapter-only">Chapter without agenda</option><option value="changed">Changed in review candidate</option><option value="reviewed">Reviewed locally</option></select></label>
+<p class="mono" id="resultCount">Loading…</p><div id="fileList" class="fileList" aria-live="polite"></div>
+<div class="noteBox"><div class="eyebrow">Retained recording timeline</div><div class="timeline" id="filmstrip"></div>
+<p class="muted">Choose a marker to open its exact indexed chapter. The line is a source index, not inferred continuous playback.</p></div>
+</section>
+<main class="panel" aria-label="Production and review desk"><div class="sectionTitle"><div><div class="eyebrow">02 / Official media and local edit</div><h2 id="fileCode">Choose a file</h2></div><span class="mono" id="indexTime"></span></div>
+<p id="fileTitle"></p><p class="statusLine" id="joined"></p>
+<div class="videoShell"><div class="screen"><small>Official provider · indexed source, never mirrored</small><strong id="chapterClock">No chapter</strong><span class="icon" aria-hidden="true">▸</span></div>
+<div class="links"><a id="playerLink" href="#" rel="noopener noreferrer" target="_blank" hidden>Open official indexed player ↗</a><a id="agendaLink" class="alt" href="#" rel="noopener noreferrer" target="_blank" hidden>Read official agenda ↗</a></div>
+<div class="lineage"><strong>Retained source lineage</strong><p>Mode: <span id="sourceState"></span></p><p>Agenda receipt: <span id="agendaReceipt"></span></p><p>Video receipt: <span id="videoReceipt"></span></p><p>Stated use boundary: <span id="rights"></span></p></div>
+</div>
+<h2>Make a source-clock edit decision.</h2><p>The official player is opened on the provider's site. You can optionally preview your own permitted full-meeting recording locally without uploading it. The edit range cannot extend past the next indexed chapter or 180 seconds.</p>
+<div class="fields"><label>From: source seconds<input id="clipStart" type="number" min="0" step="1"></label><label>To: source seconds<input id="clipEnd" type="number" min="0" step="1"></label></div>
+<p class="sourceClock" id="clipBoundary"></p><div class="links"><button class="button" id="setWindow">Validate this clip range</button><button class="button alt" id="seekLocal">Seek permitted local video to chapter</button></div>
+<div id="editPreview" class="clipStatus"></div>
+<label>Optional permitted full-meeting video, local only<input id="localVideo" type="file" accept="video/*"></label>
+<video id="localPlayer" class="localVideo" controls playsinline preload="metadata"></video><p id="localVideoLabel" class="muted">No media bytes loaded; official player links above remain the published references.</p>
+<div class="noteBox"><div class="eyebrow">Exact native clip cut (proposal only)</div><code id="nativeCmd" class="mono source">No native cut operation planned.</code>
+<p>Preparing this command does not execute BonfyreClips in the browser. Real decoding and rights-controlled publication are separate native operations.</p></div>
+<div class="sectionTitle"><div><div class="eyebrow">03 / Local reviewer decisions</div><h2>What can actually be concluded?</h2></div></div>
+<div class="fields"><label>Reviewer classification<select id="reviewStatus">
+<option value="needs-review">Needs exact review</option><option value="monitor">Monitor source file</option><option value="research">Research follow-up</option><option value="ready-for-operator">Ready for operator assessment</option><option value="reviewed-source-only">Source reviewed only; no action inferred</option>
+</select></label><label>What is still missing?<textarea id="reviewNote" rows="3" maxlength="900" placeholder="Source discrepancy, missing chapter, unclear permission…"></textarea></label></div>
+<div class="links"><button id="saveReview" class="button alt">Hold review draft</button></div>
+<div class="noteBox"><h3>Verification proposals</h3><div class="fields"><label>Proof needed<select id="proofKind"><option value="provenance">Source provenance</option><option value="rights">Recording rights</option><option value="identity">Actor identity</option><option value="consent">Consent or authority</option><option value="tax">Tax/funding record</option><option value="delivery">Delivery/receipt</option></select></label>
+<label>Candidate method<select id="proofMethod"><option value="desk">Official desk review</option><option value="owner">Source-owner confirmation</option><option value="remote-live">Remote walkthrough</option><option value="field">Field review</option><option value="licensed">Qualified professional</option></select></label></div>
+<div id="proofList" aria-live="polite"></div><div class="links"><button class="button alt" id="addProof">Add proposed requirement +</button></div><p class="warning">No quote, owner approval, dispatch or legal opinion is established by a typed requirement.</p></div>
+</main>
+<aside class="sidePanel" aria-label="Recipient review and source changes">
+<section class="paper"><span class="eyebrow">Live research packet / exportable</span><h2 id="paperTitle">Civic media review</h2><h3>Observed agenda claim</h3><p id="paperAgenda"></p>
+<h3>Indexed playback</h3><p id="paperVideo"></p><h3>Proposed cut</h3><p id="paperEdit"></p>
+<h3>Independent verification</h3><p id="paperProof"></p><h3>Human reviewer</h3><p id="paperReviewer"></p>
+<h3>What this cannot establish</h3><p class="critical" id="paperRelease"></p>
+<a id="briefStudio" href="https://nickgonzales76017.github.io/pages-procurement-memory/brief-studio/">Continue this exact file in Brief Studio ↗</a>
+<footer>This is a locally prepared research document. It is not an official Dallas release or a rights-cleared derivative recording.</footer></section>
+<div class="panel"><div class="eyebrow">04 / Compare source revisions</div><h2>Reconcile, never silently overwrite.</h2>
+<p>Review a new bounded native-format public TSV. Missing rows are source-cut differences, not proof that an agenda or recorded action never existed.</p>
+<label>Candidate source cut<input type="file" id="candidateImport" accept=".tsv,text/tab-separated-values,text/plain"></label>
+<div class="links"><button id="showDiff" class="button alt">Inspect differences</button><button id="resetSource" class="button alt">Restore original cut</button></div><div id="differences" class="muted"></div></div>
+<div class="panel"><div class="eyebrow">05 / Retain human decisions</div><h2>Save or hand off for review.</h2>
+<div class="links"><button id="saveWorkspace" class="button">Save local revisions</button><button id="exportBrief" class="button alt">Download cited brief (.md)</button><button id="exportDecision" class="button alt">Export typed edit (.yaff)</button></div>
+<p id="saveState" class="statusLine">Not saved</p><p id="message" class="message" aria-live="polite"></p>
+<p class="warning">No server writes, CMS edits, public publication, WorkGraph lease, media download, or recording rights approval.</p></div>
+</aside></div>
+<footer class="siteFooter"><span>Dallas Civic Media Room / Aurekai · working on one named source cut</span><span>Original council source workbench remains intact.</span></footer>
+</div></body></html>
