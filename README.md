@@ -3,7 +3,21 @@
 > Meetings, hotlines, issues, and archives — a digital civic OS from one repo
 
 
-## Pipeline Intelligence
+## Aurekai / Bonfÿre: product contract
+
+| | This experience |
+|---|---|
+| **Audience / value** | Local civic organizations: Connect meeting files, hotline reports and community issues to their sources |
+| **Project** | A public-facing, source-oriented Aurekai workflow over files and reviewable records |
+| **Technical scope** | GitHub Pages interface and repository-based intake; inspect the actual Actions/workflow before claiming processing or deployment |
+| **Maturity** | Earlier civic workflow example; not an official municipal system or verified incident record |
+| **Acceptance** | Follow the repository's instructions and verify actual generated files, tests, rights and destination readback |
+
+**Aurekai** is the digital operating business and public distribution network; **Bonfÿre** is the reusable software, source/authority and verified-work engine. [Business and technical model](https://github.com/Nickgonzales76017/bonfyre/blob/main/docs/aurekai-bonfyre-model.md).
+
+## Historical shared-pipeline figures (not current-site acceptance)
+
+The inherited metrics below describe an earlier shared Bonfÿre/HCP pipeline snapshot; they are **not measurements of this Pages experience**, proof of an installed native runtime, or a guarantee of model accuracy. Verify the exact model, code revision, fixtures and executed workflow for current claims.
 
 | Capability | Detail |
 |---|---|
