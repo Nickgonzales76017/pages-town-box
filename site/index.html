@@ -152,8 +152,17 @@
     @media(max-width:820px){.app{display:flex;flex-direction:column}.sidebar{border-right:0;border-bottom:1px solid var(--border)}.main{min-height:45vh}.header-right{margin-left:0}.status-bar{gap:.4rem .8rem}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.badge-processing{animation:none}}
 </style>
+<style id="aurekai-network-styles">
+.aurekai-network-nav{background:#f4f2e9;color:#204332;padding:12px clamp(16px,4vw,48px);display:flex;align-items:center;justify-content:space-between;gap:12px 25px;flex-wrap:wrap;border-bottom:1px solid #b5c3b5;font:600 13px/1.5 system-ui,-apple-system,sans-serif;position:relative;z-index:10}
+.aurekai-network-nav a{color:#204332;text-decoration:none;border-bottom:1px solid transparent}.aurekai-network-nav a:hover{border-bottom-color:#b54b32}.aurekai-network-nav a:focus-visible,.aurekai-next a:focus-visible{outline:2px solid #b54b32;outline-offset:4px}
+.aurekai-network-nav>span{white-space:normal}.aurekai-network-nav>span strong{font-weight:850;letter-spacing:.1em}.aurekai-network-nav>div{display:flex;flex-wrap:wrap;gap:9px 22px}
+.aurekai-next{background:#f4f2e9;color:#214233;padding:25px clamp(17px,4vw,48px);border-top:1px solid #b5c3b5;font:400 14px/1.6 system-ui,-apple-system,sans-serif}
+.aurekai-next h2{font:500 clamp(21px,2vw,28px)/1.3 Georgia,serif;color:#214233;margin:5px 0 14px}.aurekai-next p{color:#526658;margin:0 0 14px}
+.aurekai-next-links{display:flex;flex-wrap:wrap;gap:9px}.aurekai-next-links a{display:inline-flex;align-items:center;padding:9px 14px;border:1px solid #a7b7aa;text-decoration:none;color:#214233;background:#fffdf7;border-radius:6px;font-weight:700}.aurekai-next-links a:hover{border-color:#b54b32}
+</style>
 </head>
 <body>
+<nav class="aurekai-network-nav" aria-label="Aurekai application network"><span><a href="https://nickgonzales76017.github.io/bonfyre/discover/"><strong>AUREKAI</strong></a> / Town in a Box</span><div><a href="https://nickgonzales76017.github.io/bonfyre/discover/">All 20 applications</a><a href="https://nickgonzales76017.github.io/bonfyre/blog/a-council-agenda-can-be-useful/">Related research</a><a href="https://nickgonzales76017.github.io/bonfyre/labs/">Research Lab</a></div></nav>
   <div class="app">
     <header>
       <h1>Town in a Box</h1>
@@ -1075,5 +1084,6 @@
     updateDemoButton();
     loadDemoItems().finally(renderBoard);
   </script>
+<section class="aurekai-next" aria-label="Continue exploring Aurekai"><h2>Keep exploring the work</h2><p>This is a standalone public example. Aurekai also connects related applications, research and account-owned workspaces.</p><div class="aurekai-next-links"><a href="https://nickgonzales76017.github.io/pages-local-archive/">Explore Local Archive Explorer ↗</a><a href="https://nickgonzales76017.github.io/bonfyre/blog/a-council-agenda-can-be-useful/">Read the related article ↗</a><a href="https://nickgonzales76017.github.io/bonfyre/discover/">Browse all examples ↗</a></div></section>
 </body>
 </html>
